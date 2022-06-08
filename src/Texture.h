@@ -12,5 +12,7 @@ private:
 public:
   Texture(const std::string& filePath);
 
+  Texture(unsigned int format, int width, int height, void* data);
+
   void Bind(int slot = 0);
 };
