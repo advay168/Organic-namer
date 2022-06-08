@@ -38,6 +38,7 @@ include_directories(
 file(GLOB THIRD_PARTY vendor/glad/src/glad.c vendor/stb_image.cpp)
 file(GLOB SRC src/*)
 
+add_compile_definitions(GLFW_INCLUDE_NONE)
 add_executable(${PROJECT_NAME} ${SRC} ${THIRD_PARTY})
 
 target_link_libraries(${PROJECT_NAME}

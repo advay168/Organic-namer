@@ -5,8 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 
-static unsigned int
-sizeOf(unsigned int gl_type)
+static unsigned int sizeOf(unsigned int gl_type)
 {
   switch (gl_type) {
     case GL_FLOAT:
@@ -16,6 +15,14 @@ sizeOf(unsigned int gl_type)
     case GL_UNSIGNED_INT:
       return sizeof(unsigned int);
   }
+}
+
+VertexBuffer::VertexBuffer(Layout& layout)
+  : layout(layout)
+{
+  glGenBuffers(1, &ID);
+  Bind();
+  setAttrib();
 }
 
 VertexBuffer::VertexBuffer(Layout& layout, void* data, size_t size)
@@ -28,15 +35,21 @@ VertexBuffer::VertexBuffer(Layout& layout, void* data, size_t size)
   setAttrib();
 }
 
-void
-VertexBuffer::Bind()
+void VertexBuffer::setData(void* data, size_t size)
+{
+  Bind();
+
+  glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
+}
+
+void VertexBuffer::Bind()
 {
   glBindBuffer(GL_ARRAY_BUFFER, ID);
 }
 
-void
-VertexBuffer::setAttrib()
+void VertexBuffer::setAttrib()
 {
+  Bind();
   unsigned int stride = 0;
   for (int i = 0; i < layout.types.size(); i++) {
     stride += sizeOf(layout.types[i]) * layout.counts[i];

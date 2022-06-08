@@ -9,7 +9,11 @@ private:
   Layout& layout;
 
 public:
+  VertexBuffer(Layout& layout);
   VertexBuffer(Layout& layout, void* data, size_t size);
+
+  void setData(void* data, size_t size);
+
   void Bind();
   void setAttrib();
 };

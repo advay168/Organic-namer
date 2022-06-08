@@ -8,8 +8,12 @@ VertexArray::VertexArray()
   Bind();
 }
 
-void
-VertexArray::Bind()
+VertexArray::~VertexArray()
+{
+  glDeleteVertexArrays(1, &ID);
+}
+
+void VertexArray::Bind()
 {
   glBindVertexArray(ID);
 }

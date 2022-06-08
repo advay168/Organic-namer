@@ -7,6 +7,7 @@ private:
 
 public:
   VertexArray();
+  ~VertexArray();
 
   void Bind();
 };

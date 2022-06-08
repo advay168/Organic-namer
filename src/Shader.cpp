@@ -67,73 +67,62 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
   glDeleteShader(fragment);
 }
 
-void
-Shader::Bind()
+void Shader::Bind()
 {
   glUseProgram(ID);
 }
 
 template<>
-void
-Shader::set(const std::string& name, bool value)
+void Shader::set(const std::string& name, bool value)
 {
   setBool(name, value);
 }
 
 template<>
-void
-Shader::set(const std::string& name, int value)
+void Shader::set(const std::string& name, int value)
 {
   setInt(name, value);
 }
 
 template<>
-void
-Shader::set(const std::string& name, float value)
+void Shader::set(const std::string& name, float value)
 {
   setFloat(name, value);
 }
 
 template<>
-void
-Shader::set(const std::string& name, glm::mat4& mat)
+void Shader::set(const std::string& name, glm::mat4& mat)
 {
   setMat4(name, mat);
 }
 
 template<>
-void
-Shader::set(const std::string& name, const glm::mat4& mat)
+void Shader::set(const std::string& name, const glm::mat4& mat)
 {
   setMat4(name, mat);
 }
 
-void
-Shader::setBool(const std::string& name, bool value)
+void Shader::setBool(const std::string& name, bool value)
 {
   glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
 }
 
-void
-Shader::setInt(const std::string& name, int value)
+void Shader::setInt(const std::string& name, int value)
 {
   glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
 }
 
-void
-Shader::setFloat(const std::string& name, float value)
+void Shader::setFloat(const std::string& name, float value)
 {
   glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
 }
 
-void
-Shader::setVec3(const std::string& name, const glm::vec3& vec)
+void Shader::setVec3(const std::string& name, const glm::vec3& vec)
 {
   glUniform3f(glGetUniformLocation(ID, name.c_str()), vec.x, vec.y, vec.z);
 }
 
-void
-Shader::setMat4(const std::string& name, const glm::mat4& mat)
+void Shader::setMat4(const std::string& name, const glm::mat4& mat)
 {
   glUniformMatrix4fv(
     glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));

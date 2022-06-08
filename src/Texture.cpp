@@ -38,8 +38,7 @@ Texture::Texture(const std::string& filePath)
   stbi_image_free(data);
 }
 
-void
-Texture::Bind(int slot)
+void Texture::Bind(int slot)
 {
   glActiveTexture(GL_TEXTURE0 + slot);
   glBindTexture(GL_TEXTURE_2D, ID);
