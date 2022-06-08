@@ -1,11 +1,13 @@
 cmake_minimum_required(VERSION 3.0)
 set (CMAKE_CXX_STANDARD 17)
-project(LearnOpenGL)
+project(Organic-Namer)
 
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
 add_subdirectory(vendor/glfw)
+
+add_subdirectory(vendor/freetype)
 
 # option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
 # option(ASSIMP_BUILD_SAMPLES OFF)
@@ -31,6 +33,7 @@ include_directories(
                     # vendor/bullet/src/
                     vendor/glad/include/
                     vendor/glfw/include/
+                    vendor/freetype/include/
                     vendor/glm/
                     vendor/stb/
                     )
@@ -44,6 +47,7 @@ add_executable(${PROJECT_NAME} ${SRC} ${THIRD_PARTY})
 target_link_libraries(${PROJECT_NAME}
                     # assimp
                     glfw
+                    freetype
                     # BulletDynamics BulletCollision 
                     # LinearMath
                     )

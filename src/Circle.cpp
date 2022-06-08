@@ -5,6 +5,8 @@
 #include "glad/glad.h"
 #include "glm/gtx/transform.hpp"
 
+#include "Constants.h"
+
 #include "Shader.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
@@ -60,42 +62,22 @@ void Circle::draw()
   VAO->Bind();
   std::vector<Vertex> vertices;
   for (auto& [center, radius] : circles) {
-    glm::vec2 normalizedCenter = center * 2.0f - 1.0f;
-    float normalizedRadius = radius * 2.0f;
     vertices.push_back(
-      { normalizedCenter + glm::vec2{ normalizedRadius, normalizedRadius },
-        normalizedCenter,
-        normalizedRadius });
+      { center + glm::vec2{ radius, radius }, center, radius });
     vertices.push_back(
-      { normalizedCenter + glm::vec2{ normalizedRadius, -normalizedRadius },
-        normalizedCenter,
-        normalizedRadius });
+      { center + glm::vec2{ radius, -radius }, center, radius });
     vertices.push_back(
-      { normalizedCenter + glm::vec2{ -normalizedRadius, normalizedRadius },
-        normalizedCenter,
-        normalizedRadius });
+      { center + glm::vec2{ -radius, radius }, center, radius });
     vertices.push_back(
-      { normalizedCenter + glm::vec2{ -normalizedRadius, normalizedRadius },
-        normalizedCenter,
-        normalizedRadius });
+      { center + glm::vec2{ -radius, radius }, center, radius });
     vertices.push_back(
-      { normalizedCenter + glm::vec2{ normalizedRadius, -normalizedRadius },
-        normalizedCenter,
-        normalizedRadius });
+      { center + glm::vec2{ radius, -radius }, center, radius });
     vertices.push_back(
-      { normalizedCenter + glm::vec2{ -normalizedRadius, -normalizedRadius },
-        normalizedCenter,
-        normalizedRadius });
+      { center + glm::vec2{ -radius, -radius }, center, radius });
   }
 
   VBO->setData(vertices.data(), vertices.size() * sizeof(vertices[0]));
-  glm::mat4 projection;
-  float aspectRatio = float(windowData.width) / float(windowData.height);
-  if (aspectRatio >= 1.0f)
-    projection = glm::ortho(-aspectRatio, aspectRatio, -1.0f, 1.0f);
-  else
-    projection =
-      glm::ortho(-1.0f, 1.0f, -1.0f / aspectRatio, 1.0f / aspectRatio);
+  glm::mat4 projection = glm::ortho(0.0f, (float)WIDTH, 0.0f, (float)HEIGHT);
 
   shader->setMat4("projection", projection);
   glDrawArrays(GL_TRIANGLES, 0, vertices.size());

@@ -5,6 +5,8 @@
 #include <glm/gtx/transform.hpp>
 #include <iostream>
 
+#include "Constants.h"
+#include "Screen.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "VertexArray.h"
@@ -12,6 +14,7 @@
 #include "WindowData.h"
 
 #include "Circle.h"
+#include "Text.h"
 
 void processInput(GLFWwindow* window)
 {
@@ -71,6 +74,7 @@ int main()
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
+
   glViewport(0, 0, 800, 600);
   glEnable(GL_DEPTH_TEST);
   glEnable(GL_BLEND);
@@ -80,11 +84,14 @@ int main()
   glfwSetCursorPosCallback(window, mouse_callback);
   glfwSetScrollCallback(window, scroll_callback);
 
+  Screen screen(window);
+
+  Text::init(window);
   Circle::init(window);
-  Circle circ({ 0.2, 0.3 }, 0.1);
-  Circle circ2({ 0.5, 0.3 }, 0.2);
-  Circle circ3({ 0.8, 0.7 }, 0.21);
-  Circle circ4({ 0.2, 0.5 }, 0.09);
+  Circle circ({ 500, 600 }, 70);
+  Circle circ2({ 900, 300 }, 200);
+  Circle circ3({ 1000, 600 }, 100);
+  Circle circ4({ 200, 500 }, 150);
 
   while (!glfwWindowShouldClose(window)) {
     float currentFrame = glfwGetTime();
@@ -92,10 +99,20 @@ int main()
     windowData.lastFrame = currentFrame;
     processInput(window);
 
-    glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    screen.preDraw();
 
+    Text::render("Organic Naming!!!",
+                 WIDTH / 2 - 400,
+                 HEIGHT - 200,
+                 2.5f,
+                 { 0.2f, 0.7f, 0.1f });
+    Text::render("Bottom Left", 0, 0, 1.0f);
+    Text::render("Bottom Right", WIDTH - 310, 0, 1.0f);
+    Text::render("Top Left", 0, HEIGHT - 80, 1.0f);
+    Text::render("Top Right", WIDTH - 250, HEIGHT - 80, 1.0f);
     circ.draw();
+
+    screen.draw();
 
     glfwSwapBuffers(window);
     glfwPollEvents();

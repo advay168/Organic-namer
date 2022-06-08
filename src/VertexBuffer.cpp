@@ -42,6 +42,13 @@ void VertexBuffer::setData(void* data, size_t size)
   glBufferData(GL_ARRAY_BUFFER, size, data, GL_STATIC_DRAW);
 }
 
+void VertexBuffer::subData(void* data, size_t offset, size_t size)
+{
+  Bind();
+
+  glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
+}
+
 void VertexBuffer::Bind()
 {
   glBindBuffer(GL_ARRAY_BUFFER, ID);
