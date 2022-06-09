@@ -1,17 +1,10 @@
-#include <GLFW/glfw3.h>
-#include <glad/glad.h>
+#include "Common.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
-#include <iostream>
-
-#include "Constants.h"
 #include "Screen.h"
 #include "Shader.h"
 #include "Texture.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
-#include "WindowData.h"
 
 #include "Circle.h"
 #include "Text.h"
@@ -93,11 +86,25 @@ int main()
   Circle circ3({ 1000, 600 }, 100);
   Circle circ4({ 200, 500 }, 150);
 
+  Circle* circles[] = { &circ, &circ2, &circ3, &circ4 };
+
+  int offset = rand();
   while (!glfwWindowShouldClose(window)) {
     float currentFrame = glfwGetTime();
     windowData.deltaTime = currentFrame - windowData.lastFrame;
     windowData.lastFrame = currentFrame;
     processInput(window);
+
+    int acc = 0;
+    for (auto& circle : circles) {
+      circle->m_data.center.x +=
+        glm::perlin(glm::vec2(currentFrame + acc)) * 50;
+      circle->m_data.center.y +=
+        glm::perlin(glm::vec2(currentFrame * 2 + acc)) * 50;
+      circle->m_data.center =
+        glm::clamp(circle->m_data.center, { 0, 0 }, { WIDTH, HEIGHT });
+      acc += offset;
+    }
 
     screen.preDraw();
 

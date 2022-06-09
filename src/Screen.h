@@ -1,7 +1,7 @@
 #pragma once
 
+#include "Common.h"
 #include "Shader.h"
-#include <glfw/glfw3.h>
 
 class Screen
 {

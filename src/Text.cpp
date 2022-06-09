@@ -1,23 +1,12 @@
 #include "Text.h"
 
-#include <iostream>
-#include <map>
-
 #include <ft2build.h>
 #include FT_FREETYPE_H
-
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
-
-#include <glad/glad.h>
-
-#include "Constants.h"
 
 #include "Shader.h"
 #include "Texture.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
-#include "WindowData.h"
 
 static Shader* shader;
 static VertexArray* VAO;
@@ -27,10 +16,10 @@ static GLFWwindow* window;
 
 struct Character
 {
-  Texture texture;      // ID handle of the glyph texture
-  glm::ivec2 size;      // Size of glyph
-  glm::ivec2 bearing;   // Offset from baseline to left/top of glyph
-  unsigned int advance; // Offset to advance to next glyph
+  Texture texture;    // ID handle of the glyph texture
+  glm::ivec2 size;    // Size of glyph
+  glm::ivec2 bearing; // Offset from baseline to left/top of glyph
+  long advance;       // Offset to advance to next glyph
 };
 
 static std::map<char, Character> characters;
@@ -73,6 +62,7 @@ int Text::init(GLFWwindow* window_)
     };
     characters.insert(std::make_pair(c, character));
   }
+
   FT_Done_Face(face);
   FT_Done_FreeType(ft);
 
@@ -90,8 +80,6 @@ void Text::render(const std::string& text,
                   float scale,
                   const glm::vec3& color)
 {
-  WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
-
   shader->Bind();
   shader->setVec3("textColor", color);
   glActiveTexture(GL_TEXTURE0);

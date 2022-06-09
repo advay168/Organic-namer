@@ -1,9 +1,6 @@
+#include "Common.h"
+
 #include "VertexBuffer.h"
-
-#include <glad/glad.h>
-
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
 
 static unsigned int sizeOf(unsigned int gl_type)
 {

@@ -1,13 +1,5 @@
 #include "Screen.h"
 
-#include <iostream>
-
-#include <glad/glad.h>
-#include <glm/gtx/transform.hpp>
-
-#include "Constants.h"
-#include "WindowData.h"
-
 Screen::Screen(GLFWwindow* window)
   : screenShader("res/shaders/screen.vert", "res/shaders/screen.frag")
   , window(window)

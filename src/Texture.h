@@ -1,8 +1,6 @@
 #pragma once
 
-#include <string>
-
-#include "glm/vec4.hpp"
+#include "Common.h"
 
 class Texture
 {

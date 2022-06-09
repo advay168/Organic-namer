@@ -1,9 +1,5 @@
 #include "Texture.h"
 
-#include <glad/glad.h>
-
-#include <iostream>
-
 #include "glm/gtc/type_ptr.hpp"
 #include "stb_image.h"
 

@@ -1,18 +1,10 @@
 #include "Circle.h"
 
-#include <vector>
-
-#include "glad/glad.h"
-#include "glm/gtx/transform.hpp"
-
-#include "Constants.h"
-
 #include "Shader.h"
 #include "VertexArray.h"
 #include "VertexBuffer.h"
-#include "WindowData.h"
 
-static std::vector<CircleData> circles;
+static std::vector<CircleData*> circles;
 static Shader* shader;
 static VertexArray* VAO;
 static Layout layout;
@@ -27,12 +19,12 @@ Circle::Circle()
 Circle::Circle(const glm::vec2& center, float radius)
   : m_data({ center, radius })
 {
-  circles.push_back(m_data);
+  circles.push_back(&m_data);
 }
 
 Circle::~Circle()
 {
-  circles.erase(std::remove(circles.begin(), circles.end(), m_data),
+  circles.erase(std::remove(circles.begin(), circles.end(), &m_data),
                 circles.end());
 }
 
@@ -61,7 +53,8 @@ void Circle::draw()
   shader->Bind();
   VAO->Bind();
   std::vector<Vertex> vertices;
-  for (auto& [center, radius] : circles) {
+  for (CircleData* data : circles) {
+    auto& [center, radius] = *data;
     vertices.push_back(
       { center + glm::vec2{ radius, radius }, center, radius });
     vertices.push_back(
