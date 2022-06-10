@@ -49,7 +49,6 @@ struct Vertex
 
 void Circle::draw()
 {
-  WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
   shader->Bind();
   VAO->Bind();
   std::vector<Vertex> vertices;

@@ -4,8 +4,16 @@ Screen::Screen(GLFWwindow* window)
   : screenShader("res/shaders/screen.vert", "res/shaders/screen.frag")
   , window(window)
 {
+  WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
+  glViewport(0, 0, windowData.width, windowData.height);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+
   glGenFramebuffers(1, &fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glGenTextures(1, &textureColorbuffer);
   glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
   glTexImage2D(
@@ -55,9 +63,7 @@ void Screen::preDraw()
 {
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT |
-          GL_DEPTH_BUFFER_BIT); // we're not using the stencil buffer now
-  glEnable(GL_DEPTH_TEST);
+  glClear(GL_COLOR_BUFFER_BIT); // we're not using the stencil buffer now
   glViewport(0, 0, WIDTH, HEIGHT);
 }
 
@@ -68,7 +74,7 @@ void Screen::draw()
   glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT);
 
   float virtualAspect = float(WIDTH) / HEIGHT;
   float screenAspect = float(windowData.width) / windowData.height;

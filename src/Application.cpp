@@ -61,17 +61,13 @@ int main()
     std::cout << "Failed to create window" << std::endl;
     return -1;
   }
+
   glfwSetWindowUserPointer(window, &windowData);
   glfwMakeContextCurrent(window);
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return -1;
   }
-
-  glViewport(0, 0, 800, 600);
-  glEnable(GL_DEPTH_TEST);
-  glEnable(GL_BLEND);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
   glfwSetCursorPosCallback(window, mouse_callback);
@@ -108,6 +104,7 @@ int main()
 
     screen.preDraw();
 
+    circ.draw();
     Text::render("Organic Naming!!!",
                  WIDTH / 2 - 400,
                  HEIGHT - 200,
@@ -117,7 +114,6 @@ int main()
     Text::render("Bottom Right", WIDTH - 310, 0, 1.0f);
     Text::render("Top Left", 0, HEIGHT - 80, 1.0f);
     Text::render("Top Right", WIDTH - 250, HEIGHT - 80, 1.0f);
-    circ.draw();
 
     screen.draw();
 

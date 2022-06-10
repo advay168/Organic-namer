@@ -72,6 +72,7 @@ int Text::init(GLFWwindow* window_)
   layout.add(GL_FLOAT, 2, "pos").add(GL_FLOAT, 2, "tex");
   VBO = new VertexBuffer(layout);
   glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+  return 0;
 }
 
 void Text::render(const std::string& text,
