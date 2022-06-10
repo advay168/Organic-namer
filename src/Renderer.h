@@ -4,7 +4,7 @@
 class Renderer
 {
 public:
-  static void Init(GLFWwindow *window);
+  static void Init(GLFWwindow* window);
   static void Text(const std::string& text,
                    float x,
                    float y,
@@ -14,6 +14,14 @@ public:
   static void Text(const std::string& text, float x, float y, float scale);
 
   static void Circle(const glm::vec2& center, float radius);
+  
+  static void Circle(const glm::vec2& center, float radius, const glm::vec3& color);
+
+  static void BorderCircle(const glm::vec2& center,
+                           float innerRadius,
+                           const glm::vec3& innerColor,
+                           float borderThickness,
+                           const glm::vec3& borderColor);
 
   static void Begin();
 
