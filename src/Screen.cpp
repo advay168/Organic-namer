@@ -1,14 +1,13 @@
 #include "Screen.h"
 
-Screen::Screen(GLFWwindow* window)
+Screen::Screen(unsigned int& width, unsigned int& height)
   : screenShader("res/shaders/screen.vert", "res/shaders/screen.frag")
-  , window(window)
+  , width(width)
+  , height(height)
 {
-  WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
-  glViewport(0, 0, windowData.width, windowData.height);
+  glViewport(0, 0, width, height);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 
   glGenFramebuffers(1, &fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -69,24 +68,22 @@ void Screen::preDraw()
 
 void Screen::draw()
 {
-  WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
-
   glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
   float virtualAspect = float(WIDTH) / HEIGHT;
-  float screenAspect = float(windowData.width) / windowData.height;
+  float screenAspect = float(width) / height;
 
   if (screenAspect > virtualAspect) {
-    float delta = windowData.width - virtualAspect * windowData.height;
+    float delta = width - virtualAspect * height;
     delta /= 2.0;
-    glViewport(delta, 0, windowData.width - 2 * delta, windowData.height);
+    glViewport(delta, 0, width - 2 * delta, height);
   } else {
-    float delta = windowData.height - windowData.width / virtualAspect;
+    float delta = height - width / virtualAspect;
     delta /= 2.0;
-    glViewport(0, delta, windowData.width, windowData.height - 2 * delta);
+    glViewport(0, delta, width, height - 2 * delta);
   }
 
   screenShader.Bind();
@@ -95,5 +92,5 @@ void Screen::draw()
   glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
   glDrawArrays(GL_TRIANGLES, 0, 6);
 
-  glViewport(0, 0, windowData.width, windowData.height);
+  glViewport(0, 0, width, height);
 }

@@ -6,13 +6,13 @@
 class Screen
 {
 public:
-  Screen(GLFWwindow* window);
+  Screen(unsigned int& width, unsigned int& height);
   void preDraw();
   void draw();
 
 private:
   Shader screenShader;
-  GLFWwindow* window;
+  unsigned int &width, &height;
   unsigned int fbo;
   unsigned int quadVAO, textureColorbuffer;
 };

@@ -67,7 +67,7 @@ void VertexBuffer::setAttrib()
                           layout.types[i],
                           GL_FALSE,
                           stride,
-                          reinterpret_cast<void *>(cumalativeSize));
+                          reinterpret_cast<void*>(cumalativeSize));
     cumalativeSize += sizeOf(layout.types[i]) * layout.counts[i];
   }
 }
