@@ -12,6 +12,7 @@ static unsigned int sizeOf(unsigned int gl_type)
     case GL_UNSIGNED_INT:
       return sizeof(unsigned int);
   }
+  return 0;
 }
 
 VertexBuffer::VertexBuffer(Layout& layout)
@@ -55,18 +56,18 @@ void VertexBuffer::setAttrib()
 {
   Bind();
   unsigned int stride = 0;
-  for (int i = 0; i < layout.types.size(); i++) {
+  for (size_t i = 0; i < layout.types.size(); i++) {
     stride += sizeOf(layout.types[i]) * layout.counts[i];
   }
   unsigned int cumalativeSize = 0;
-  for (int i = 0; i < layout.types.size(); i++) {
+  for (size_t i = 0; i < layout.types.size(); i++) {
     glEnableVertexAttribArray(i);
     glVertexAttribPointer(i,
                           layout.counts[i],
                           layout.types[i],
                           GL_FALSE,
                           stride,
-                          (void*)cumalativeSize);
+                          reinterpret_cast<void *>(cumalativeSize));
     cumalativeSize += sizeOf(layout.types[i]) * layout.counts[i];
   }
 }

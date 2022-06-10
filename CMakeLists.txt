@@ -30,6 +30,7 @@ endif()
 
 
 include_directories(
+                    src
                     # vendor/assimp/include/
                     # vendor/bullet/src/
                     vendor/glad/include/
@@ -40,7 +41,7 @@ include_directories(
                     )
 
 file(GLOB THIRD_PARTY vendor/glad/src/glad.c vendor/stb_image.cpp)
-file(GLOB SRC src/*)
+file(GLOB_RECURSE SRC src/*)
 
 add_compile_definitions(GLFW_INCLUDE_NONE)
 add_executable(${PROJECT_NAME} ${SRC} ${THIRD_PARTY})

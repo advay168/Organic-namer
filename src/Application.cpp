@@ -6,12 +6,10 @@
 #include "VertexArray.h"
 #include "VertexBuffer.h"
 
-#include "Circle.h"
-#include "Text.h"
+#include "Renderer.h"
 
 void processInput(GLFWwindow* window)
 {
-  WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
 }
@@ -34,17 +32,17 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     windowData.firstMouse = false;
   }
 
-  float xoffset = xpos - windowData.lastX;
-  float yoffset = windowData.lastY -
-                  ypos; // reversed since y-coordinates go from bottom to top
+  // float xoffset = xpos - windowData.lastX;
+  // float yoffset = windowData.lastY - ypos; // reversed since y-coordinates go
+  // from bottom to top
 
   windowData.lastX = xpos;
   windowData.lastY = ypos;
 }
 
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+void scroll_callback(GLFWwindow*, double, double)
 {
-  WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
+  // WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
 }
 
 int main()
@@ -75,14 +73,11 @@ int main()
 
   Screen screen(window);
 
-  Text::init(window);
-  Circle::init(window);
-  Circle circ({ 500, 600 }, 70);
-  Circle circ2({ 900, 300 }, 200);
-  Circle circ3({ 1000, 600 }, 100);
-  Circle circ4({ 200, 500 }, 150);
+  Renderer::Init(window);
 
-  Circle* circles[] = { &circ, &circ2, &circ3, &circ4 };
+  glm::vec3 circles[] = {
+    { 500, 600, 70 }, { 900, 300, 200 }, { 1000, 600, 100 }, { 200, 500, 150 }
+  };
 
   int offset = rand();
   while (!glfwWindowShouldClose(window)) {
@@ -91,30 +86,30 @@ int main()
     windowData.lastFrame = currentFrame;
     processInput(window);
 
+    screen.preDraw();
+    Renderer::Begin();
+
+    Renderer::Text("Organic Naming!!!",
+                   WIDTH / 2.0f - 400,
+                   HEIGHT - 200,
+                   2.5f,
+                   { 0.2f, 0.7f, 0.1f });
+
     int acc = 0;
     for (auto& circle : circles) {
-      circle->m_data.center.x +=
-        glm::perlin(glm::vec2(currentFrame + acc)) * 50;
-      circle->m_data.center.y +=
-        glm::perlin(glm::vec2(currentFrame * 2 + acc)) * 50;
-      circle->m_data.center =
-        glm::clamp(circle->m_data.center, { 0, 0 }, { WIDTH, HEIGHT });
+      circle.x += glm::perlin(glm::vec2(currentFrame + acc)) * 50;
+      circle.y += glm::perlin(glm::vec2(currentFrame * 2 + acc)) * 50;
+      circle = glm::clamp(circle, { 0, 0, 0 }, { WIDTH, HEIGHT, 1000000 });
+      Renderer::Circle({ circle.x, circle.y }, circle.z);
       acc += offset;
     }
 
-    screen.preDraw();
+    Renderer::Text("Bottom Left", 0, 0, 1.0f);
+    Renderer::Text("Bottom Right", WIDTH - 310, 0, 1.0f);
+    Renderer::Text("Top Left", 0, HEIGHT - 80, 1.0f);
+    Renderer::Text("Top Right", WIDTH - 250, HEIGHT - 80, 1.0f);
 
-    circ.draw();
-    Text::render("Organic Naming!!!",
-                 WIDTH / 2 - 400,
-                 HEIGHT - 200,
-                 2.5f,
-                 { 0.2f, 0.7f, 0.1f });
-    Text::render("Bottom Left", 0, 0, 1.0f);
-    Text::render("Bottom Right", WIDTH - 310, 0, 1.0f);
-    Text::render("Top Left", 0, HEIGHT - 80, 1.0f);
-    Text::render("Top Right", WIDTH - 250, HEIGHT - 80, 1.0f);
-
+    Renderer::End();
     screen.draw();
 
     glfwSwapBuffers(window);

@@ -1,6 +1,8 @@
-#include "Text.h"
+#include "Common.h"
+#include "Renderer.h"
 
 #include <ft2build.h>
+#include <vector>
 #include FT_FREETYPE_H
 
 #include "Shader.h"
@@ -12,7 +14,6 @@ static Shader* shader;
 static VertexArray* VAO;
 static Layout layout;
 static VertexBuffer* VBO;
-static GLFWwindow* window;
 
 struct Character
 {
@@ -24,19 +25,27 @@ struct Character
 
 static std::map<char, Character> characters;
 
-int Text::init(GLFWwindow* window_)
+struct TextData
 {
-  window = window_;
+  const std::string text;
+  float x, y, scale;
+  const glm::vec3 color;
+};
+
+static std::vector<TextData> texts;
+
+void Renderer::TextInit()
+{
   FT_Library ft;
   FT_Face face;
   if (FT_Init_FreeType(&ft)) {
     std::cout << "ERROR::FREETYPE: Could not init FreeType Library"
               << std::endl;
-    return -1;
+    return;
   }
   if (FT_New_Face(ft, "res/fonts/arial.ttf", 0, &face)) {
     std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;
-    return -1;
+    return;
   }
   FT_Set_Pixel_Sizes(face, 0, 48);
 
@@ -72,15 +81,20 @@ int Text::init(GLFWwindow* window_)
   layout.add(GL_FLOAT, 2, "pos").add(GL_FLOAT, 2, "tex");
   VBO = new VertexBuffer(layout);
   glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-  return 0;
 }
 
-void Text::render(const std::string& text,
-                  float x,
-                  float y,
-                  float scale,
-                  const glm::vec3& color)
+void Renderer::Text(const std::string& text,
+                    float x,
+                    float y,
+                    float scale,
+                    const glm::vec3& color)
 {
+  texts.push_back({ text, x, y, scale, color });
+}
+
+static void internalDrawText(TextData& data)
+{
+  auto& [text, x, y, scale, color] = data;
   shader->Bind();
   shader->setVec3("textColor", color);
   glActiveTexture(GL_TEXTURE0);
@@ -119,4 +133,19 @@ void Text::render(const std::string& text,
     // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount
     // of 1/64th pixels by 64 to get amount of pixels))
   }
+}
+
+void Renderer::Text(const std::string& text, float x, float y, float scale)
+{
+  Renderer::Text(text, x, y, scale, glm::vec3(1.0f));
+}
+void Renderer::TextDraw()
+{
+  for (auto& textData : texts) {
+    internalDrawText(textData);
+  }
+}
+void Renderer::TextClear()
+{
+  texts.clear();
 }
