@@ -47,8 +47,9 @@ add_compile_definitions(GLFW_INCLUDE_NONE)
 add_executable(${PROJECT_NAME} ${SRC} ${THIRD_PARTY})
 
 if(EMSCRIPTEN)
-        set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".html")
-    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS " --preload-file res -s USE_GLFW=3 -s USE_WEBGL2=1 -s FULL_ES3=1")
+    set(CMAKE_CXX_FLAGS "-O2")
+    set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".html")
+    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS " --preload-file res -s USE_GLFW=3 -s USE_WEBGL2=1 -s FULL_ES3=1 --shell-file ${CMAKE_SOURCE_DIR}/template.html")
 endif()
 
 
