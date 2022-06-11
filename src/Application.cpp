@@ -31,11 +31,10 @@ void Application::runFrame()
 
   screen.preDraw();
   Renderer::Begin();
-  Renderer::Text("Organic Naming!!!",
-                 WIDTH / 2.0f - 400,
-                 HEIGHT - 200,
-                 2.5f,
-                 { 0.2f, 0.7f, 0.1f });
+  Renderer::CenteredText("Organic Naming!!!",
+                         { WIDTH / 2.0f, HEIGHT / 2.0f },
+                         2.5f,
+                         { 0.2f, 0.7f, 0.1f });
 
   int acc = 0;
   for (auto& circle : circles) {
@@ -50,16 +49,20 @@ void Application::runFrame()
   glm::vec2 center{ WIDTH / 2.0f, HEIGHT / 2.0f };
   center.x += glm::perlin(glm::vec2(currentFrame * 3)) * 500;
   center.y += glm::perlin(glm::vec2(currentFrame * 2)) * 500;
+
+  Renderer::TextCircle(
+    { 200, 600 }, 100, glm::vec3(1.0f), "Hello", 1.0f, glm::vec3(0.0f));
+
   Renderer::BorderCircle(center,
                          (1 + glm::perlin(glm::vec2(currentFrame))) * 300,
                          { 0.5f, 0.3f, 0.9f },
                          10,
                          { 0.1f, 0.89f, 0.66f });
 
-  Renderer::Text("Bottom Left", 0, 0, 1.0f);
-  Renderer::Text("Bottom Right", WIDTH - 310, 0, 1.0f);
-  Renderer::Text("Top Left", 0, HEIGHT - 80, 1.0f);
-  Renderer::Text("Top Right", WIDTH - 250, HEIGHT - 80, 1.0f);
+  Renderer::Text("Bottom Left", { 0, 0 }, 1.0f);
+  Renderer::Text("Bottom Right", { WIDTH - 310, 0 }, 1.0f);
+  Renderer::Text("Top Left", { 0, HEIGHT - 80 }, 1.0f);
+  Renderer::Text("Top Right", { WIDTH - 250, HEIGHT - 80 }, 1.0f);
 
   Renderer::End();
   screen.draw();

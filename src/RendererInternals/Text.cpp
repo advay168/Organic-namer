@@ -81,16 +81,44 @@ void Renderer::TextInit()
   layout.add(GL_FLOAT, 2, "pos").add(GL_FLOAT, 2, "tex");
   VBO = new VertexBuffer(layout);
   glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
-  //std::cout << "Loaded font: res/fonts/arial.ttf" << std::endl;
+  // std::cout << "Loaded font: res/fonts/arial.ttf" << std::endl;
+}
+
+static unsigned int textWidth(const std::string& text, float scale)
+{
+  unsigned int width = 0;
+  for (char c : text) {
+    Character& ch = characters.at(c);
+    width += (ch.advance >> 6) * scale;
+  }
+  return width;
+}
+
+static unsigned int textHeight(const std::string& text, float scale)
+{
+  unsigned int height = 0;
+  for (char c : text) {
+    Character& ch = characters.at(c);
+    height = std::max(height, (unsigned int)(ch.size.y * scale));
+  }
+  return height;
+}
+
+void Renderer::CenteredText(const std::string& text,
+                            const glm::vec2& pos,
+                            float scale,
+                            const glm::vec3& color)
+{
+  texts.push_back(
+    { text, pos.x - textWidth(text, scale) / 2.0f, pos.y - textHeight(text, scale) / 2.0f, scale, color });
 }
 
 void Renderer::Text(const std::string& text,
-                    float x,
-                    float y,
+                    const glm::vec2& pos,
                     float scale,
                     const glm::vec3& color)
 {
-  texts.push_back({ text, x, y, scale, color });
+  texts.push_back({ text, pos.x, pos.y, scale, color });
 }
 
 static void internalDrawText(TextData& data)
@@ -136,10 +164,18 @@ static void internalDrawText(TextData& data)
   }
 }
 
-void Renderer::Text(const std::string& text, float x, float y, float scale)
+void Renderer::Text(const std::string& text, const glm::vec2& pos, float scale)
 {
-  Renderer::Text(text, x, y, scale, glm::vec3(1.0f));
+  Renderer::Text(text, pos, scale, glm::vec3(1.0f));
 }
+
+void Renderer::CenteredText(const std::string& text,
+                            const glm::vec2& pos,
+                            float scale)
+{
+  Renderer::CenteredText(text, pos, scale, glm::vec3(1.0f));
+}
+
 void Renderer::TextDraw()
 {
   for (auto& textData : texts) {

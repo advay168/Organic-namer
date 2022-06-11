@@ -7,7 +7,17 @@
     },
     "tasks": [
         {
-            "label": "Cmake",
+            "label": "Configure",
+            "command": "cmake",
+            "args": [
+                ".."
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/build"
+            }
+        },
+        {
+            "label": "Build",
             "command": "cmake",
             "args": [
                 "--build",
@@ -19,12 +29,12 @@
         },
         {
             "label": "Run",
-            "command": "LearnopenGl.exe",
+            "command": "Organic-Namer.exe",
             "options": {
-                "cwd": "${workspaceFolder}/build/Debug"
+                "cwd": "${workspaceFolder}/build/"
             },
             "dependsOn": [
-                "Cmake"
+                "Build"
             ],
             "problemMatcher": [],
             "group": {
