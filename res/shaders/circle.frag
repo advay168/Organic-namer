@@ -1,5 +1,3 @@
-#version 330 core
-
 in vec2 vPos;
 flat in vec2 vCenter;
 flat in float vRadius;

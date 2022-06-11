@@ -5,6 +5,12 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#ifdef EMSCRIPTEN
+std::string prefix("#version 300 es\nprecision highp float;\n");
+#else
+std::string prefix("#version 330 core\n");
+#endif
+
 Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
 {
   std::string vertexCode;
@@ -17,8 +23,8 @@ Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
     vShaderStream << vShaderFile.rdbuf();
     fShaderStream << fShaderFile.rdbuf();
 
-    vertexCode = vShaderStream.str();
-    fragmentCode = fShaderStream.str();
+    vertexCode = prefix + vShaderStream.str();
+    fragmentCode = prefix + fShaderStream.str();
   } catch (std::ifstream::failure& e) {
     std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << e.what()
               << std::endl;
