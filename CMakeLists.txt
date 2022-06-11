@@ -5,8 +5,10 @@ project(Organic-Namer)
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
-add_subdirectory(vendor/glfw)
 
+if (NOT EMSCRIPTEN)
+add_subdirectory(vendor/glfw)
+endif()
 add_subdirectory(vendor/freetype)
 
 # option(ASSIMP_BUILD_ASSIMP_TOOLS OFF)
@@ -27,8 +29,6 @@ else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic")
 
 endif()
-
-
 include_directories(
                     src
                     # vendor/assimp/include/
@@ -46,6 +46,13 @@ file(GLOB_RECURSE SRC src/*)
 add_compile_definitions(GLFW_INCLUDE_NONE)
 add_executable(${PROJECT_NAME} ${SRC} ${THIRD_PARTY})
 
+if(EMSCRIPTEN)
+        set_target_properties(${PROJECT_NAME} PROPERTIES SUFFIX ".html")
+    set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS " --preload-file res -s USE_GLFW=3 -s USE_WEBGL2=1 -s FULL_ES3=1")
+endif()
+
+
+if (NOT EMSCRIPTEN)
 target_link_libraries(${PROJECT_NAME}
                     # assimp
                     glfw
@@ -53,6 +60,7 @@ target_link_libraries(${PROJECT_NAME}
                     # BulletDynamics BulletCollision 
                     # LinearMath
                     )
-
+endif()
+target_link_libraries(${PROJECT_NAME} freetype)
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/Common.h)
-add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
+add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)

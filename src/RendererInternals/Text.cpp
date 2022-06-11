@@ -57,7 +57,7 @@ void Renderer::TextInit()
       continue;
     }
 
-    Texture texture(GL_RED,
+    Texture texture(GL_LUMINANCE,
                     face->glyph->bitmap.width,
                     face->glyph->bitmap.rows,
                     face->glyph->bitmap.buffer);
@@ -81,6 +81,7 @@ void Renderer::TextInit()
   layout.add(GL_FLOAT, 2, "pos").add(GL_FLOAT, 2, "tex");
   VBO = new VertexBuffer(layout);
   glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+  //std::cout << "Loaded font: res/fonts/arial.ttf" << std::endl;
 }
 
 void Renderer::Text(const std::string& text,

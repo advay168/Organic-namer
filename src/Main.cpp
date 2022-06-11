@@ -29,11 +29,13 @@ int main()
 
   Application application(window);
   windowData.application = &application;
-
+#ifdef EMSCRIPTEN
+  emscripten_set_main_loop_arg([](void* application){((Application*)application)->runFrame();}, &application, 0, 1);
+#else
   while (!glfwWindowShouldClose(window)) {
     application.runFrame();
   }
-
+#endif
   glfwDestroyWindow(window);
   glfwTerminate();
 }
