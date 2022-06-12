@@ -58,7 +58,7 @@ Screen::Screen(unsigned int& width, unsigned int& height)
     1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 }
 
-void Screen::preDraw()
+void Screen::Bind()
 {
   glBindFramebuffer(GL_FRAMEBUFFER, fbo);
   glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
