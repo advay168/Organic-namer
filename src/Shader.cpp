@@ -5,11 +5,7 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
-#ifdef EMSCRIPTEN
-std::string prefix("#version 300 es\nprecision highp float;\n");
-#else
 std::string prefix("#version 330 core\n");
-#endif
 
 Shader::Shader(const std::string& vertexPath, const std::string& fragmentPath)
 {
