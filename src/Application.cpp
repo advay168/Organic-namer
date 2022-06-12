@@ -1,4 +1,7 @@
 #include "Application.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+#include "imgui.h"
 
 #include "Renderer.h"
 
@@ -28,8 +31,11 @@ void Application::runFrame()
   lastFrame = currentFrame;
 
   processInput();
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
 
-  screen.preDraw();
+  screen.Bind();
   Renderer::Begin();
   Renderer::CenteredText("Organic Naming!!!",
                          { WIDTH / 2.0f, HEIGHT / 2.0f },
@@ -65,7 +71,49 @@ void Application::runFrame()
   Renderer::Text("Top Right", { WIDTH - 250, HEIGHT - 80 }, 1.0f);
 
   Renderer::End();
-  screen.draw();
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+  ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), dockspace_flags);
+
+  ImGui::Begin("MyMainWindow");
+  ImGui::Text("Hello World");
+  ImGui::End();
+
+  ImGui::ShowMetricsWindow();
+
+  ImGui::Begin("Application");
+  float virtualAspect = float(WIDTH) / HEIGHT;
+  auto [windowWidth, windowHeight] = ImGui::GetContentRegionAvail();
+  float screenAspect = windowWidth / windowHeight;
+  float width = windowWidth, height = windowHeight;
+  if (screenAspect > virtualAspect) {
+    float delta = windowWidth - virtualAspect * windowHeight;
+    width = windowWidth - delta;
+  } else {
+    float delta = windowHeight - windowWidth / virtualAspect;
+    height = windowHeight - delta;
+  }
+  ImGui::Image((void*)(intptr_t)screen.textureColorbuffer,
+               ImVec2(width, height),
+               ImVec2(0, 1),
+               ImVec2(1, 0));
+  ImGui::End();
+
+  ImGui::Render();
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+  ImGuiIO& io = ImGui::GetIO();
+  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+    GLFWwindow* backup_current_context = glfwGetCurrentContext();
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
+    glfwMakeContextCurrent(backup_current_context);
+  }
+
   glfwSwapBuffers(window);
   glfwPollEvents();
 }

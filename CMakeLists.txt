@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.0)
 set (CMAKE_CXX_STANDARD 17)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 project(Organic-Namer)
 
 option(GLFW_BUILD_DOCS OFF)
@@ -38,9 +41,15 @@ include_directories(
                     vendor/freetype/include/
                     vendor/glm/
                     vendor/stb/
+                    vendor/imgui/
                     )
 
-file(GLOB THIRD_PARTY vendor/glad/src/glad.c vendor/stb_image.cpp)
+file(GLOB THIRD_PARTY 
+                    vendor/glad/src/glad.c 
+                    vendor/stb_image.cpp 
+                    vendor/imgui/* 
+                    vendor/imgui/backends/imgui_impl_glfw.cpp 
+                    vendor/imgui/backends/imgui_impl_opengl3.cpp)
 file(GLOB_RECURSE SRC src/*)
 
 add_compile_definitions(GLFW_INCLUDE_NONE)
