@@ -7,9 +7,6 @@
 [submodule "vendor/stb"]
 	path = vendor/stb
 	url = https://github.com/nothings/stb.git
-[submodule "vendor/freetype"]
-	path = vendor/freetype
-	url = https://gitlab.freedesktop.org/freetype/freetype
 [submodule "vendor/imgui"]
 	path = vendor/imgui
 	url = https://github.com/ocornut/imgui
