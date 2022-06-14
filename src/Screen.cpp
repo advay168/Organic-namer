@@ -1,11 +1,8 @@
 #include "Screen.h"
 
-Screen::Screen(unsigned int& width, unsigned int& height)
+Screen::Screen()
   : screenShader("res/shaders/screen.vert", "res/shaders/screen.frag")
-  , width(width)
-  , height(height)
 {
-  glViewport(0, 0, width, height);
   glEnable(GL_BLEND);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -65,32 +62,7 @@ void Screen::Bind()
   glClear(GL_COLOR_BUFFER_BIT); // we're not using the stencil buffer now
   glViewport(0, 0, WIDTH, HEIGHT);
 }
-
-void Screen::draw()
+void Screen::unBind()
 {
-  glBindFramebuffer(GL_FRAMEBUFFER, 0); // back to default
-
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  float virtualAspect = float(WIDTH) / HEIGHT;
-  float screenAspect = float(width) / height;
-
-  if (screenAspect > virtualAspect) {
-    float delta = width - virtualAspect * height;
-    delta /= 2.0;
-    glViewport(delta, 0, width - 2 * delta, height);
-  } else {
-    float delta = height - width / virtualAspect;
-    delta /= 2.0;
-    glViewport(0, delta, width, height - 2 * delta);
-  }
-
-  screenShader.Bind();
-  glBindVertexArray(quadVAO);
-  glDisable(GL_DEPTH_TEST);
-  glBindTexture(GL_TEXTURE_2D, textureColorbuffer);
-  glDrawArrays(GL_TRIANGLES, 0, 6);
-
-  glViewport(0, 0, width, height);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }

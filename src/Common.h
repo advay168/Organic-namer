@@ -15,6 +15,8 @@
 
 #include <glad/glad.h>
 
+#include "imgui.h"
+
 #include "Constants.h"
 #include "WindowData.h"
 #endif

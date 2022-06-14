@@ -6,14 +6,14 @@
 class Screen
 {
 public:
-  Screen(unsigned int& width, unsigned int& height);
+  Screen();
   void Bind();
-  void draw();
+  void unBind();
 
   unsigned int textureColorbuffer;
+
 private:
   Shader screenShader;
-  unsigned int &width, &height;
   unsigned int fbo;
   unsigned int quadVAO;
 };

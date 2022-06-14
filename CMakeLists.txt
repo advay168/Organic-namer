@@ -5,6 +5,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(Organic-Namer)
 
+add_compile_definitions(IMGUI_USER_CONFIG="user_imgui_config.h")
+
 option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 option(GLFW_BUILD_TESTS OFF)
