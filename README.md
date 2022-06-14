@@ -1,8 +1,7 @@
 # Organic-namer
 
-## Building instruction
-### Native:
+## Building instructions
 * `mkdir build`
 * `cd build`
-* `cmake -G Ninja -DCMAKE_EXPORT_COMPILE_COMMANDS=1 ..`
+* `cmake -G Ninja..`
 * `ninja`
