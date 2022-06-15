@@ -46,6 +46,7 @@ file(GLOB THIRD_PARTY
                     vendor/glad/src/glad.c 
                     vendor/stb_image.cpp 
                     vendor/imgui/* 
+                    vendor/imgui/misc/freetype/imgui_freetype.cpp
                     vendor/imgui/backends/imgui_impl_glfw.cpp 
                     vendor/imgui/backends/imgui_impl_opengl3.cpp)
 file(GLOB_RECURSE SRC src/*)

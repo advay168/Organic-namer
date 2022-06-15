@@ -4,10 +4,10 @@
 #include <vector>
 #include FT_FREETYPE_H
 
-#include "Shader.h"
-#include "Texture.h"
-#include "VertexArray.h"
-#include "VertexBuffer.h"
+#include "Graphics/Shader.h"
+#include "Graphics/Texture.h"
+#include "Graphics/VertexArray.h"
+#include "Graphics/VertexBuffer.h"
 
 static Shader* shader;
 static VertexArray* VAO;

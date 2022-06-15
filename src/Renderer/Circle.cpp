@@ -1,8 +1,8 @@
 #include "Circle.h"
 
-#include "Shader.h"
-#include "VertexArray.h"
-#include "VertexBuffer.h"
+#include "Graphics/Shader.h"
+#include "Graphics/VertexArray.h"
+#include "Graphics/VertexBuffer.h"
 
 struct Vertex
 {

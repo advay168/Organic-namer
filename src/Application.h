@@ -1,7 +1,7 @@
 #pragma once
 #include "Common.h"
 
-#include "Screen.h"
+#include "Graphics/Screen.h"
 
 class Application
 {

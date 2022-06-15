@@ -1,9 +1,9 @@
 #pragma once
 #include "Common.h"
 
-#include "RendererInternals/Circle.h"
-#include "RendererInternals/Text.h"
-#include "RendererInternals/TextCircle.h"
+#include "Circle.h"
+#include "Text.h"
+#include "TextCircle.h"
 
 class Renderer
   : public CircleRenderer
