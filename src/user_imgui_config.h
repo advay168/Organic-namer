@@ -29,7 +29,7 @@
 // #define IM_ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under
-//Windows
+// Windows
 // Using Dear ImGui via a shared library is not recommended, because of function
 // call overhead and because we don't guarantee backward nor forward ABI
 // compatibility. DLL users: heaps and globals are not shared across DLL
@@ -40,7 +40,8 @@
 // #define IMGUI_API __declspec( dllimport )
 
 //---- Don't define obsolete functions/enums/behaviors. Consider enabling from
-//time to time after updating to avoid using soon-to-be obsolete function/names.
+// time to time after updating to avoid using soon-to-be obsolete
+// function/names.
 // #define IMGUI_DISABLE_OBSOLETE_FUNCTIONS
 // #define IMGUI_DISABLE_OBSOLETE_KEYIO                      // 1.87: disable
 // legacy io.KeyMap[]+io.KeysDown[] in favor io.AddKeyEvent(). This will be
@@ -92,14 +93,14 @@
 // #define IMGUI_INCLUDE_IMGUI_USER_H
 
 //---- Pack colors to BGRA8 instead of RGBA8 (to avoid converting from one to
-//another) #define IMGUI_USE_BGRA_PACKED_COLOR
+// another) #define IMGUI_USE_BGRA_PACKED_COLOR
 
 //---- Use 32-bit for ImWchar (default is 16-bit) to support unicode planes
-//1-16. (e.g. point beyond 0xFFFF like emoticons, dingbats, symbols, shapes,
-//ancient languages, etc...) #define IMGUI_USE_WCHAR32
+// 1-16. (e.g. point beyond 0xFFFF like emoticons, dingbats, symbols, shapes,
+// ancient languages, etc...) #define IMGUI_USE_WCHAR32
 
 //---- Avoid multiple STB libraries implementations, or redefine path/filenames
-//to prioritize another version
+// to prioritize another version
 // By default the embedded implementations are declared static and not available
 // outside of Dear ImGui sources files.
 // #define IMGUI_STB_TRUETYPE_FILENAME   "my_folder/stb_truetype.h"
@@ -109,13 +110,13 @@
 // IMGUI_DISABLE_STB_RECT_PACK_IMPLEMENTATION
 
 //---- Use stb_sprintf.h for a faster implementation of vsnprintf instead of the
-//one from libc (unless IMGUI_DISABLE_DEFAULT_FORMAT_FUNCTIONS is defined)
+// one from libc (unless IMGUI_DISABLE_DEFAULT_FORMAT_FUNCTIONS is defined)
 // Compatibility checks of arguments and formats done by clang and GCC will be
 // disabled in order to support the extra formats provided by stb_sprintf.h.
 // #define IMGUI_USE_STB_SPRINTF
 
 //---- Use FreeType to build and rasterize the font atlas (instead of
-//stb_truetype which is embedded by default in Dear ImGui)
+// stb_truetype which is embedded by default in Dear ImGui)
 // Requires FreeType headers to be available in the include path. Requires
 // program to be compiled with 'misc/freetype/imgui_freetype.cpp' (in this
 // repository) + the FreeType library (not provided). On Windows you may use
@@ -129,7 +130,7 @@
 // #define IMGUI_ENABLE_STB_TRUETYPE
 
 //---- Define constructor and implicit cast operators to convert back<>forth
-//between your math types and ImVec2/ImVec4.
+// between your math types and ImVec2/ImVec4.
 // This will be inlined as part of ImVec2 and ImVec4 class declarations.
 #include <glm/glm.hpp>
 #define IM_VEC2_CLASS_EXTRA                                                    \
@@ -157,7 +158,7 @@
   }
 
 //---- Use 32-bit vertex indices (default is 16-bit) is one way to allow large
-//meshes with more than 64K vertices.
+// meshes with more than 64K vertices.
 // Your renderer backend will need to support it (most example renderer backends
 // support both 16/32-bit indices). Another way to allow large meshes while
 // keeping 16-bit indices is to handle ImDrawCmd::VtxOffset in your renderer.
@@ -165,7 +166,7 @@
 // #define ImDrawIdx unsigned int
 
 //---- Override ImDrawCallback signature (will need to modify renderer backends
-//accordingly) struct ImDrawList; struct ImDrawCmd; typedef void
+// accordingly) struct ImDrawList; struct ImDrawCmd; typedef void
 // (*MyImDrawCallback)(const ImDrawList* draw_list, const ImDrawCmd* cmd, void*
 // my_renderer_user_data); #define ImDrawCallback MyImDrawCallback
 
@@ -176,7 +177,7 @@
 // #define IM_DEBUG_BREAK  __debugbreak()
 
 //---- Debug Tools: Have the Item Picker break in the ItemAdd() function instead
-//of ItemHoverable(),
+// of ItemHoverable(),
 // (which comes earlier in the code, will catch a few extra items, allow picking
 // items other than Hovered one.) This adds a small runtime cost which is why it
 // is not enabled by default.
@@ -186,7 +187,7 @@
 // #define IMGUI_DEBUG_PARANOID
 
 //---- Tip: You can add extra functions within the ImGui:: namespace, here or in
-//your own headers files.
+// your own headers files.
 /*
 namespace ImGui
 {

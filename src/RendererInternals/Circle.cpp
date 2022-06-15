@@ -1,4 +1,4 @@
-#include "Renderer.h"
+#include "Circle.h"
 
 #include "Shader.h"
 #include "VertexArray.h"
@@ -18,7 +18,7 @@ static VertexArray* VAO;
 static Layout layout;
 static VertexBuffer* VBO;
 
-void Renderer::CircleInit()
+void CircleRenderer::Init()
 {
   shader = new Shader("res/shaders/circle.vert", "res/shaders/circle.frag");
   layout.add(GL_FLOAT, 2, "aPos")
@@ -30,14 +30,14 @@ void Renderer::CircleInit()
   VBO = new VertexBuffer(layout);
 }
 
-void Renderer::Circle(const glm::vec2& center, float radius)
+void CircleRenderer::Circle(const glm::vec2& center, float radius)
 {
-  Renderer::Circle(center, radius, glm::vec3(1.0f));
+  Circle(center, radius, glm::vec3(1.0f));
 }
 
-void Renderer::Circle(const glm::vec2& center,
-                      float radius,
-                      const glm::vec3& color)
+void CircleRenderer::Circle(const glm::vec2& center,
+                            float radius,
+                            const glm::vec3& color)
 {
   circlePoints.push_back(
     { center + glm::vec2{ radius, radius }, center, radius, color });
@@ -53,20 +53,20 @@ void Renderer::Circle(const glm::vec2& center,
     { center + glm::vec2{ -radius, -radius }, center, radius, color });
 }
 
-void Renderer::BorderCircle(const glm::vec2& center,
-                            float innerRadius,
-                            const glm::vec3& innerColor,
-                            float borderThickness,
-                            const glm::vec3& borderColor)
+void CircleRenderer::BorderCircle(const glm::vec2& center,
+                                  float innerRadius,
+                                  const glm::vec3& innerColor,
+                                  float borderThickness,
+                                  const glm::vec3& borderColor)
 {
-  Renderer::Circle(center, innerRadius + borderThickness, borderColor);
-  Renderer::Circle(center, innerRadius, innerColor);
+  Circle(center, innerRadius + borderThickness, borderColor);
+  Circle(center, innerRadius, innerColor);
 }
-void Renderer::CircleClear()
+void CircleRenderer::Begin()
 {
   circlePoints.clear();
 }
-void Renderer::CircleDraw()
+void CircleRenderer::End()
 {
   shader->Bind();
   VAO->Bind();

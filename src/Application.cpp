@@ -1,8 +1,10 @@
 #include "Application.h"
+
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
 #include "Renderer.h"
+#include "WindowData.h"
 
 int offset = rand();
 Application::Application(GLFWwindow* window)

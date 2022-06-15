@@ -7,16 +7,15 @@
 #include <unordered_map>
 #include <vector>
 
-#include <glm/glm.hpp>
-#include <glm/gtc/noise.hpp>
-#include <glm/gtx/transform.hpp>
-
 #include <GLFW/glfw3.h>
 
 #include <glad/glad.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/noise.hpp>
+#include <glm/gtx/transform.hpp>
+
 #include "imgui.h"
 
 #include "Constants.h"
-#include "WindowData.h"
 #endif

@@ -5,6 +5,7 @@
 
 #include "Renderer.h"
 #include "Screen.h"
+#include "WindowData.h"
 
 #include "Application.h"
 

@@ -1,18 +1,18 @@
 #include "Renderer.h"
 
-GLFWwindow* Renderer::window;
 void Renderer::Init()
 {
-  Renderer::CircleInit();
-  Renderer::TextInit();
-}
-void Renderer::End()
-{
-  Renderer::CircleDraw();
-  Renderer::TextDraw();
+  CircleRenderer::Init();
+  TextRenderer::Init();
 }
 void Renderer::Begin()
 {
-  Renderer::CircleClear();
-  Renderer::TextClear();
+  CircleRenderer::Begin();
+  TextRenderer::Begin();
+}
+
+void Renderer::End()
+{
+  CircleRenderer::End();
+  TextRenderer::End();
 }

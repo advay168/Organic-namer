@@ -1,5 +1,3 @@
-#include "Common.h"
-
 #include "VertexBuffer.h"
 
 static unsigned int sizeOf(unsigned int gl_type)
