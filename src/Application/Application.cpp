@@ -12,10 +12,10 @@ Application::Application(GLFWwindow* window)
 {
   setCallbacks();
   Renderer::Init();
-  circles[0] = { 500, 600, 70 };
-  circles[1] = { 900, 300, 200 };
-  circles[2] = { 1000, 600, 100 };
-  circles[3] = { 200, 500, 150 };
+  hydrogen.setPos({ 750, 200 });
+  helium.setPos({ 1000, 800 });
+  atoms.push_back(hydrogen);
+  atoms.push_back(helium);
 }
 
 void Application::processInput()
@@ -28,45 +28,14 @@ void Application::processInput()
 
 void Application::updateFrame()
 {
-  int acc = 0;
-  for (auto& circle : circles) {
-    circle.x += glm::perlin(glm::vec2(lastFrame + acc)) * 50;
-    circle.y += glm::perlin(glm::vec2(lastFrame * 2 + acc)) * 50;
-    circle = glm::clamp(circle,
-                        { circle.z, circle.z, 0 },
-                        { WIDTH - circle.z, HEIGHT - circle.z, 1000000 });
-    acc += offset;
-  }
+  for (Atom& atom : atoms)
+    atom.update(mousePos);
 }
 
 void Application::drawFrame()
 {
-  Renderer::CenteredText("Organic Naming!!!",
-                         { WIDTH / 2.0f, HEIGHT / 2.0f },
-                         2.5f,
-                         { 0.2f, 0.7f, 0.1f });
-  Renderer::Text("Bottom Left", { 0, 0 }, 1.0f);
-  Renderer::Text("Bottom Right", { WIDTH - 310, 0 }, 1.0f);
-  Renderer::Text("Top Left", { 0, HEIGHT - 80 }, 1.0f);
-  Renderer::Text("Top Right", { WIDTH - 250, HEIGHT - 80 }, 1.0f);
-
-  for (auto& circle : circles) {
-    Renderer::Circle({ circle.x, circle.y }, circle.z, { 0.8, 0.3, 0.2 });
-  }
-
-  glm::vec2 center{ WIDTH / 2.0f, HEIGHT / 2.0f };
-  center.x += glm::perlin(glm::vec2(lastFrame * 3)) * 500;
-  center.y += glm::perlin(glm::vec2(lastFrame * 2)) * 500;
-
-  Renderer::TextCircle(
-    { 200, 600 }, 100, glm::vec3(1.0f), "Hello", 1.0f, glm::vec3(0.0f));
-
-  Renderer::BorderCircle(center,
-                         (1 + glm::perlin(glm::vec2(lastFrame))) * 300,
-                         { 0.5f, 0.3f, 0.9f },
-                         10,
-                         { 0.1f, 0.89f, 0.66f });
-  Renderer::Circle(mousePos, 30, { 0.23f, 0.35f, 0.46f });
+  for (Atom& atom : atoms)
+    atom.draw();
 }
 
 void Application::ImGuiFrame()
@@ -163,9 +132,33 @@ void Application::setCallbacks()
       WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
       windowData.application->framebuffer_size_callback(width, height);
     });
+  glfwSetMouseButtonCallback(
+    window, [](GLFWwindow* window, int button, int action, int mods) {
+      WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
+      windowData.application->mouse_button_callback(button, action, mods);
+    });
 }
 
 void Application::framebuffer_size_callback(int width, int height)
 {
   glViewport(0, 0, width, height);
+}
+
+void Application::mouse_button_callback(int button, int action, int mods)
+{
+  (void)mods;
+  if (button == GLFW_MOUSE_BUTTON_LEFT) {
+    if (action == GLFW_PRESS) {
+      for (Atom& atom : atoms) {
+        if (atom.isIntersecting(mousePos)) {
+          atom.selected = true;
+          break;
+        }
+      }
+    } else {
+      for (Atom& atom : atoms) {
+        atom.selected = false;
+      }
+    }
+  }
 }

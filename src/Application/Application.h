@@ -3,6 +3,8 @@
 
 #include "Graphics/Screen.h"
 
+#include "Atom.h"
+
 class Application
 {
 public:
@@ -14,6 +16,7 @@ private:
   void setCallbacks();
 
   void framebuffer_size_callback(int width, int height);
+  void mouse_button_callback(int button, int action, int mods);
 
   void calcWindowSize();
   void calcCursorPos();
@@ -26,7 +29,6 @@ private:
 
 private:
   GLFWwindow* window;
-  glm::vec3 circles[4];
 
   Screen screen;
   float deltaTime = 0.0f;
@@ -35,4 +37,8 @@ private:
   float height;
   glm::vec2 mousePos;
   bool window_focused = false;
+
+  Atom hydrogen = Atom("Hydrogen", "H");
+  Atom helium = Atom("Helium", "He");
+  std::vector<Atom> atoms;
 };

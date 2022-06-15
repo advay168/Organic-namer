@@ -5,7 +5,7 @@
 
 #include "Graphics/WindowData.h"
 
-#include "Application.h"
+#include "Application/Application.h"
 
 int main()
 {
