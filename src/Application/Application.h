@@ -36,9 +36,11 @@ private:
   float width;
   float height;
   glm::vec2 mousePos;
-  bool window_focused = false;
+  bool windowFocused = false;
+  bool outOfWindow = true;
 
-  Atom hydrogen = Atom("Hydrogen", "H");
-  Atom helium = Atom("Helium", "He");
   std::vector<Atom> atoms;
+  std::vector<std::pair<std::string, std::string>> atomsList;
+  int selectedAtom = -1;
+  std::unique_ptr<Atom> tmpAtom;
 };

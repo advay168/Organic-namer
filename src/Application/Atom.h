@@ -15,7 +15,7 @@ public:
   bool isIntersecting(const glm::vec2& mousePos);
 
 public:
-  bool selected;
+  bool selected = false;
   float radius = 40.0f;
 private:
   std::string name;
