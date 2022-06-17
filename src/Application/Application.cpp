@@ -5,6 +5,7 @@
 
 #include "Graphics/WindowData.h"
 #include "Renderer/Renderer.h"
+#include "imgui.h"
 
 int offset = rand();
 Application::Application(GLFWwindow* window)
@@ -13,17 +14,42 @@ Application::Application(GLFWwindow* window)
   setCallbacks();
   Renderer::Init();
 
-  atomsList.emplace_back("Hydrogen", "H");
-  atomsList.emplace_back("Helium", "He");
-  atomsList.emplace_back("Lithium", "Li");
+  elementsList.emplace_back("Hydrogen", "H");
+  elementsList.emplace_back("Helium", "He");
+  elementsList.emplace_back("Lithium", "Li");
 }
 
 void Application::processInput()
 {
+  if (leftMouseClicked && !outOfWindow) {
+    if (keyPressed[ImGuiKey_LeftCtrl]) {
+      std::cout << "Hi" << std::endl;
+    } else if (tmpAtom) {
+      atoms.push_back(*tmpAtom); // not same atom as vector creates copy
+      // tmpAtom.reset();
+      // selectedAtom = -1;
+    } else {
+      if (Atom* atom = findHoveredAtom()) {
+        // atom.selected = true;
+        atom->selected = !atom->selected;
+        selectedAtom = atom->selected ? atom : nullptr;
+      }
+    }
+  }
   if (!windowFocused)
     return;
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     glfwSetWindowShouldClose(window, true);
+}
+
+Atom* Application::findHoveredAtom()
+{
+  for (Atom& atom : atoms) {
+    if (atom.isIntersecting(mousePos)) {
+      return &atom;
+    }
+  }
+  return nullptr;
 }
 
 void Application::updateFrame()
@@ -33,6 +59,9 @@ void Application::updateFrame()
   if (tmpAtom) {
     tmpAtom->setPos(mousePos);
   }
+
+  for (Bond& bond : bonds)
+    bond.update();
 }
 
 void Application::drawFrame()
@@ -41,9 +70,13 @@ void Application::drawFrame()
     atom.draw();
   if (tmpAtom)
     tmpAtom->draw();
+
+  for (Bond& bond : bonds)
+    bond.draw();
+
   // Renderer::Line({200, 300},{400, 500});
-  //Renderer::Quad({ 100, 200 }, { 200, 300 }, { 80, 150 }, { 230, 640 });
-  Renderer::Line({100, 200}, {300, 400}, 2.0f);
+  // Renderer::Quad({ 100, 200 }, { 200, 300 }, { 80, 150 }, { 230, 640 });
+  Renderer::Line({ 100, 200 }, { 300, 400 }, 2.0f);
 }
 
 void Application::ImGuiFrame()
@@ -51,33 +84,39 @@ void Application::ImGuiFrame()
   ImGui::Begin("Application");
   calcWindowSize();
   calcCursorPos();
+  setInputState();
   windowFocused = ImGui::IsWindowFocused();
 
   ImGui::Image((void*)(intptr_t)screen.textureColorbuffer,
                { width, height },
                { 0.0f, 1.0f },
                { 1.0f, 0.0f });
+
+  if (selectedAtom) {
+    ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+  }
+
   ImGui::End();
 
   ImGui::Begin("MyMainWindow");
   ImGui::Text("The UI");
   ImGui::Text("windowFocused: %i", windowFocused);
   ImGui::Text("outOfWindow: %i", outOfWindow);
-  ImGui::Text("Atoms: ");
+  ImGui::Text("Elements: ");
   ImGui::SameLine();
   if (ImGui::BeginCombo("###atomCombo",
-                        selectedAtom == -1
+                        selectedTmpAtom == -1
                           ? "Select"
-                          : atomsList[selectedAtom].first.c_str())) {
-    for (size_t i = 0; i < atomsList.size(); i++) {
-      if (ImGui::Selectable(atomsList[i].first.c_str(),
-                            (int)i == selectedAtom)) {
-        if ((int)i == selectedAtom) {
-          selectedAtom = -1;
+                          : elementsList[selectedTmpAtom].first.c_str())) {
+    for (size_t i = 0; i < elementsList.size(); i++) {
+      if (ImGui::Selectable(elementsList[i].first.c_str(),
+                            (int)i == selectedTmpAtom)) {
+        if ((int)i == selectedTmpAtom) {
+          selectedTmpAtom = -1;
           tmpAtom.reset();
         } else {
-          selectedAtom = i;
-          tmpAtom.reset(new Atom(atomsList[i].first, atomsList[i].second));
+          selectedTmpAtom = i;
+          tmpAtom.reset(new Atom(elementsList[i].first, elementsList[i].second));
         }
       }
     }
@@ -160,6 +199,15 @@ void Application::calcCursorPos()
   mousePos = localCoord * glm::vec2(WIDTH, HEIGHT);
 }
 
+void Application::setInputState()
+{
+  leftMouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+  rightMouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
+  for (int key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_COUNT; key++) {
+    keyPressed[key] = ImGui::IsKeyDown(key);
+  }
+}
+
 void Application::setCallbacks()
 {
   glfwSetFramebufferSizeCallback(
@@ -167,42 +215,9 @@ void Application::setCallbacks()
       WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
       windowData.application->framebuffer_size_callback(width, height);
     });
-  glfwSetMouseButtonCallback(
-    window, [](GLFWwindow* window, int button, int action, int mods) {
-      WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
-      windowData.application->mouse_button_callback(button, action, mods);
-    });
 }
 
 void Application::framebuffer_size_callback(int width, int height)
 {
   glViewport(0, 0, width, height);
-}
-
-void Application::mouse_button_callback(int button, int action, int mods)
-{
-  if (outOfWindow)
-    return;
-  (void)mods;
-  if (button == GLFW_MOUSE_BUTTON_LEFT) {
-    if (action == GLFW_PRESS) {
-      if (tmpAtom) {
-        atoms.push_back(Atom(*tmpAtom));
-        // tmpAtom.reset();
-        // selectedAtom = -1;
-      } else {
-        for (Atom& atom : atoms) {
-          if (atom.isIntersecting(mousePos)) {
-            //atom.selected = true;
-            atom.selected = !atom.selected;
-            break;
-          }
-        }
-      }
-    } else {
-      //for (Atom& atom : atoms) {
-        //atom.selected = false;
-      //}
-    }
-  }
 }

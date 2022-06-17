@@ -4,6 +4,7 @@
 #include "Graphics/Screen.h"
 
 #include "Atom.h"
+#include "Bond.h"
 
 class Application
 {
@@ -16,16 +17,18 @@ private:
   void setCallbacks();
 
   void framebuffer_size_callback(int width, int height);
-  void mouse_button_callback(int button, int action, int mods);
 
   void calcWindowSize();
   void calcCursorPos();
+  void setInputState();
 
   void processInput();
 
   void updateFrame();
   void drawFrame();
   void ImGuiFrame();
+
+  Atom* findHoveredAtom();
 
 private:
   GLFWwindow* window;
@@ -39,8 +42,16 @@ private:
   bool windowFocused = false;
   bool outOfWindow = true;
 
+  bool leftMouseClicked = false;
+  bool rightMouseClicked = false;
+  bool keyPressed[ImGuiKey_COUNT] = {0};
+
   std::vector<Atom> atoms;
-  std::vector<std::pair<std::string, std::string>> atomsList;
-  int selectedAtom = -1;
+  Atom* selectedAtom = nullptr;
+
+  std::vector<std::pair<std::string, std::string>> elementsList;
+  int selectedTmpAtom = -1;
   std::unique_ptr<Atom> tmpAtom;
+
+  std::vector<Bond> bonds;
 };

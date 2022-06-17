@@ -14,6 +14,8 @@ public:
 
   bool isIntersecting(const glm::vec2& mousePos);
 
+  friend class Bond;
+
 public:
   bool selected = false;
   float radius = 40.0f;
