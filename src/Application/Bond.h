@@ -6,12 +6,13 @@
 class Bond
 {
 public:
-  Bond(Atom& a, Atom& b);
-
-  void update();
+  Bond(Atom* a = nullptr, Atom* b = nullptr);
 
   void draw();
 
+  Atom& other(Atom& x);
+  Atom& other(Atom* x);
+
 private:
-  Atom &a, b;
+  Atom *a, *b;
 };

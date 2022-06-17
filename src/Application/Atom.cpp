@@ -22,25 +22,14 @@ Atom::Atom(const std::string& name, const std::string& symbol)
   color = glm::vec3(r, g, b) / 255.0f;
 }
 
-void Atom::setPos(const glm::vec2& to)
-{
-  pos = to;
-}
-
-void Atom::update(const glm::vec2& mousePos){
-  if(selected)
-    pos = mousePos;
-
-}
-
-void Atom::draw()
+void Atom::draw(bool selected)
 {
   float grayscale = (color.r * 0.299 + color.g * 0.587 + color.b * 0.114);
-  glm::vec3 color = this->color + (selected ? 0.1f : 0.0f);
-  if (grayscale > 186)
-    Renderer::TextCircle(pos, radius, color, symbol, 1.0f, glm::vec3(0));
-  else
-    Renderer::TextCircle(pos, radius, color, symbol, 1.0f, glm::vec3(1));
+  glm::vec3 color = this->color + (selected ? 0.2f : 0.0f);
+  glm::vec3 textColor(grayscale > 186 ? 0.0f : 1.0f);
+  if (selected)
+    Renderer::BorderCircle(pos, radius, color, 1.0f, glm::vec3(1.0f));
+  Renderer::TextCircle(pos, radius, color, symbol, 1.0f, textColor);
 }
 bool Atom::isIntersecting(const glm::vec2& mousePos)
 {

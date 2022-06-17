@@ -21,25 +21,47 @@ Application::Application(GLFWwindow* window)
 
 void Application::processInput()
 {
-  if (leftMouseClicked && !outOfWindow) {
-    if (keyPressed[ImGuiKey_LeftCtrl]) {
-      std::cout << "Hi" << std::endl;
-    } else if (tmpAtom) {
-      atoms.push_back(*tmpAtom); // not same atom as vector creates copy
-      // tmpAtom.reset();
-      // selectedAtom = -1;
+  handleAtomsInput();
+}
+
+void Application::handleAtomsInput()
+{
+  if (keyPressed[ImGuiKey_Escape]) {
+    selectedAtom = nullptr;
+    selectedAtomFollowMouse = false;
+    selectedTmpAtom = -1;
+    tmpAtom.reset();
+    return;
+  }
+
+  if (outOfWindow)
+    return;
+  if (!leftMouseClicked)
+    return;
+  Atom* atom = findHoveredAtom();
+  if (keyPressed[ImGuiKey_LeftCtrl]) {
+    if (!atom)
+      return;
+    if (selectedAtom) {
+      bonds.emplace_back(selectedAtom, atom);
+      selectedAtom = nullptr;
     } else {
-      if (Atom* atom = findHoveredAtom()) {
-        // atom.selected = true;
-        atom->selected = !atom->selected;
-        selectedAtom = atom->selected ? atom : nullptr;
-      }
+      selectedAtom = atom;
+    }
+    // atom->selected = true;
+  } else if (tmpAtom) {
+    atoms.push_back(*tmpAtom); // not same atom as vector creates copy
+  } else {
+    if (!atom)
+      return;
+    if (selectedAtom) {
+      selectedAtom = nullptr;
+      selectedAtomFollowMouse = false;
+    } else {
+      selectedAtom = atom;
+      selectedAtomFollowMouse = true;
     }
   }
-  if (!windowFocused)
-    return;
-  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-    glfwSetWindowShouldClose(window, true);
 }
 
 Atom* Application::findHoveredAtom()
@@ -54,22 +76,19 @@ Atom* Application::findHoveredAtom()
 
 void Application::updateFrame()
 {
-  for (Atom& atom : atoms)
-    atom.update(mousePos);
+  if (selectedAtom && selectedAtomFollowMouse)
+    selectedAtom->pos = mousePos;
   if (tmpAtom) {
-    tmpAtom->setPos(mousePos);
+    tmpAtom->pos = mousePos;
   }
-
-  for (Bond& bond : bonds)
-    bond.update();
 }
 
 void Application::drawFrame()
 {
   for (Atom& atom : atoms)
-    atom.draw();
+    atom.draw(selectedAtom == &atom);
   if (tmpAtom)
-    tmpAtom->draw();
+    tmpAtom->draw(false);
 
   for (Bond& bond : bonds)
     bond.draw();
@@ -92,7 +111,7 @@ void Application::ImGuiFrame()
                { 0.0f, 1.0f },
                { 1.0f, 0.0f });
 
-  if (selectedAtom) {
+  if (selectedAtom && selectedAtomFollowMouse) {
     ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
   }
 
@@ -102,6 +121,7 @@ void Application::ImGuiFrame()
   ImGui::Text("The UI");
   ImGui::Text("windowFocused: %i", windowFocused);
   ImGui::Text("outOfWindow: %i", outOfWindow);
+
   ImGui::Text("Elements: ");
   ImGui::SameLine();
   if (ImGui::BeginCombo("###atomCombo",
@@ -116,12 +136,25 @@ void Application::ImGuiFrame()
           tmpAtom.reset();
         } else {
           selectedTmpAtom = i;
-          tmpAtom.reset(new Atom(elementsList[i].first, elementsList[i].second));
+          tmpAtom.reset(
+            new Atom(elementsList[i].first, elementsList[i].second));
         }
       }
     }
     ImGui::EndCombo();
   }
+
+  if (selectedAtom) {
+    ImGui::Text("%s", selectedAtom->name.c_str());
+    auto& atomBonds = selectedAtom->bonds;
+    for (Bond* bond : atomBonds) {
+      if (ImGui::SmallButton(
+            ("Delete bond to " + bond->other(selectedAtom).name).c_str())) {
+        (void)0;
+      }
+    }
+  }
+
   ImGui::End();
 
   ImGui::ShowMetricsWindow();

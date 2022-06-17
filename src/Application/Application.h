@@ -28,6 +28,8 @@ private:
   void drawFrame();
   void ImGuiFrame();
 
+  void handleAtomsInput();
+
   Atom* findHoveredAtom();
 
 private:
@@ -46,12 +48,13 @@ private:
   bool rightMouseClicked = false;
   bool keyPressed[ImGuiKey_COUNT] = {0};
 
-  std::vector<Atom> atoms;
+  std::list<Atom> atoms;
   Atom* selectedAtom = nullptr;
+  bool selectedAtomFollowMouse = false;
 
   std::vector<std::pair<std::string, std::string>> elementsList;
   int selectedTmpAtom = -1;
   std::unique_ptr<Atom> tmpAtom;
 
-  std::vector<Bond> bonds;
+  std::list<Bond> bonds;
 };

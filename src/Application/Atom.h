@@ -1,27 +1,23 @@
 #pragma once
 #include "Common.h"
 
-class Atom
+struct Atom
 {
-public:
   Atom(const std::string& name, const std::string& symbol);
-  Atom(const std::string& name, const std::string& symbol, const glm::vec3& color);
+  Atom(const std::string& name,
+       const std::string& symbol,
+       const glm::vec3& color);
 
-  void setPos(const glm::vec2& to);
-
-  void update(const glm::vec2& mousePos);
-  void draw();
+  void draw(bool selected);
 
   bool isIntersecting(const glm::vec2& mousePos);
 
-  friend class Bond;
-
-public:
-  bool selected = false;
   float radius = 40.0f;
-private:
+  std::vector<class Bond*> bonds;
+
   std::string name;
   std::string symbol;
   glm::vec2 pos;
   glm::vec3 color;
+
 };
