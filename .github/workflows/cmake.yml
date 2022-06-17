@@ -157,7 +157,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
           name: Windows binary
-          path: ${{github.workspace}}/build/Debug/Organic-Namer.exe
+          path: ${{github.workspace}}/build/Release/Organic-Namer.exe
     - name: create res folder
       shell: bash
       working-directory: ${{github.workspace}}
