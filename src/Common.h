@@ -6,6 +6,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <list>
 
 #include <GLFW/glfw3.h>
 
