@@ -13,7 +13,7 @@ struct Atom
   bool isIntersecting(const glm::vec2& mousePos);
 
   float radius = 40.0f;
-  std::vector<class Bond*> bonds;
+  std::vector<struct Bond*> bonds;
 
   std::string name;
   std::string symbol;

@@ -32,6 +32,8 @@ private:
 
   Atom* findHoveredAtom();
 
+  void deleteBond(Bond* bondToDel);
+
 private:
   GLFWwindow* window;
 

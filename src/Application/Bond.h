@@ -3,9 +3,8 @@
 
 #include "Application/Atom.h"
 
-class Bond
+struct Bond
 {
-public:
   Bond(Atom* a = nullptr, Atom* b = nullptr);
 
   void draw();
@@ -13,6 +12,5 @@ public:
   Atom& other(Atom& x);
   Atom& other(Atom* x);
 
-private:
   Atom *a, *b;
 };
