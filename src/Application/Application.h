@@ -32,6 +32,8 @@ private:
 
   Atom* findHoveredAtom();
 
+  void createBond(Atom* a, Atom* b);
+
   void deleteAtom(Atom* atomToDel);
   void deleteBond(Bond* bondToDel);
 

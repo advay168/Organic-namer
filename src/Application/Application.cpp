@@ -48,7 +48,7 @@ void Application::handleAtomsInput()
     if (!atom || atom == selectedAtom)
       return;
     if (selectedAtom) {
-      bonds.emplace_back(selectedAtom, atom);
+      createBond(selectedAtom, atom);
       selectedAtom = nullptr;
     } else {
       selectedAtom = atom;
@@ -81,6 +81,18 @@ Atom* Application::findHoveredAtom()
   return nullptr;
 }
 
+void Application::createBond(Atom* a, Atom* b)
+{
+  Bond tmpBond(a, b);
+  for (Bond& bond : bonds) {
+    if (bond == tmpBond) {
+      ++bond.count;
+      return;
+    }
+  }
+  bonds.push_back(tmpBond);
+}
+
 void Application::deleteAtom(Atom* atomToDel)
 {
   while (atomToDel->bonds.size()) {
@@ -95,10 +107,6 @@ void Application::deleteAtom(Atom* atomToDel)
 
 void Application::deleteBond(Bond* bondToDel)
 {
-  auto& aBonds = bondToDel->a->bonds;
-  auto& bBonds = bondToDel->b->bonds;
-  bBonds.erase(std::find(bBonds.begin(), bBonds.end(), bondToDel));
-  aBonds.erase(std::find(aBonds.begin(), aBonds.end(), bondToDel));
   auto it = std::find_if(bonds.begin(), bonds.end(), [bondToDel](Bond& x) {
     return &x == bondToDel;
   });
@@ -180,13 +188,16 @@ void Application::ImGuiFrame()
       Bond* bondToDel = nullptr;
       for (Bond* bond : atomBonds) {
         std::stringstream name;
-        name << "Delete bond to " << bond->other(selectedAtom).name << "##"
+        name << "Delete 1 bond to " << bond->other(selectedAtom).name << "##"
              << bond;
         if (ImGui::Button(name.str().c_str()))
           bondToDel = bond;
       }
-      if (bondToDel)
-        deleteBond(bondToDel);
+      if (bondToDel) {
+        bondToDel->count--;
+        if (bondToDel->count == 0)
+          deleteBond(bondToDel);
+      }
     }
   }
 
