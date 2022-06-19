@@ -32,6 +32,7 @@ private:
 
   Atom* findHoveredAtom();
 
+  void deleteAtom(Atom* atomToDel);
   void deleteBond(Bond* bondToDel);
 
 private:
@@ -48,7 +49,7 @@ private:
 
   bool leftMouseClicked = false;
   bool rightMouseClicked = false;
-  bool keyPressed[ImGuiKey_COUNT] = {0};
+  bool keyPressed[ImGuiKey_COUNT] = { 0 };
 
   std::list<Atom> atoms;
   Atom* selectedAtom = nullptr;

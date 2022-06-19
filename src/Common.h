@@ -1,13 +1,13 @@
 #ifdef __cplusplus
 #include <algorithm>
 #include <iostream>
+#include <list>
 #include <map>
 #include <memory>
-#include <string>
 #include <sstream>
+#include <string>
 #include <unordered_map>
 #include <vector>
-#include <list>
 
 #include <GLFW/glfw3.h>
 

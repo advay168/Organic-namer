@@ -34,6 +34,11 @@ void Application::handleAtomsInput()
     return;
   }
 
+  if (keyPressed[ImGuiKey_Delete]) {
+    if (selectedAtom)
+      deleteAtom(selectedAtom);
+  }
+
   if (outOfWindow)
     return;
   if (!leftMouseClicked)
@@ -74,6 +79,18 @@ Atom* Application::findHoveredAtom()
     }
   }
   return nullptr;
+}
+
+void Application::deleteAtom(Atom* atomToDel)
+{
+  while (atomToDel->bonds.size()) {
+    deleteBond(atomToDel->bonds[0]);
+  }
+  atoms.erase(std::find_if(atoms.begin(), atoms.end(), [atomToDel](Atom& a) {
+    return &a == atomToDel;
+  }));
+  if (selectedAtom == atomToDel)
+    selectedAtom = nullptr;
 }
 
 void Application::deleteBond(Bond* bondToDel)
@@ -156,18 +173,21 @@ void Application::ImGuiFrame()
 
   if (selectedAtom) {
     ImGui::Text("%s", selectedAtom->name.c_str());
-    auto& atomBonds = selectedAtom->bonds;
-    Bond* bondToDel = nullptr;
-    for (Bond* bond : atomBonds) {
-      std::stringstream name_;
-      name_ << "Delete bond to " << bond->other(selectedAtom).name << "##"
-            << bond;
-      std::string name(name_.str());
-      if (ImGui::SmallButton(name.c_str()))
-        bondToDel = bond;
+    if (ImGui::Button("Delete Atom")) {
+      deleteAtom(selectedAtom);
+    } else {
+      auto& atomBonds = selectedAtom->bonds;
+      Bond* bondToDel = nullptr;
+      for (Bond* bond : atomBonds) {
+        std::stringstream name;
+        name << "Delete bond to " << bond->other(selectedAtom).name << "##"
+             << bond;
+        if (ImGui::Button(name.str().c_str()))
+          bondToDel = bond;
+      }
+      if (bondToDel)
+        deleteBond(bondToDel);
     }
-    if (bondToDel)
-      deleteBond(bondToDel);
   }
 
   ImGui::End();

@@ -19,5 +19,4 @@ struct Atom
   std::string symbol;
   glm::vec2 pos;
   glm::vec3 color;
-
 };
