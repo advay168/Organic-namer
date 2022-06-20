@@ -63,16 +63,16 @@ void Bond::draw()
       return;
     }
     case 3: {
-      Renderer::Line(a->pos, b->pos, 1.5f);
-      Renderer::Line(a->pos + offset, b->pos + offset, 1.5f);
-      Renderer::Line(a->pos - offset, b->pos - offset, 1.5f);
+      Renderer::Line(a->pos, b->pos, 2.0f);
+      Renderer::Line(a->pos + 1.5f * offset, b->pos + 1.5f * offset, 2.0f);
+      Renderer::Line(a->pos - 1.5f * offset, b->pos - 1.5f * offset, 2.0f);
       return;
     }
     case 4: {
-      Renderer::Line(a->pos + 2.0f * offset, b->pos + 2.0f * offset, 1.5f);
-      Renderer::Line(a->pos + 0.6f * offset, b->pos + 0.6f * offset, 1.5f);
-      Renderer::Line(a->pos - 0.6f * offset, b->pos - 0.6f * offset, 1.5f);
-      Renderer::Line(a->pos - 2.0f * offset, b->pos - 2.0f * offset, 1.5f);
+      Renderer::Line(a->pos + 2.5f * offset, b->pos + 2.5f * offset, 2.0f);
+      Renderer::Line(a->pos + 0.75f * offset, b->pos + 0.75f * offset, 2.0f);
+      Renderer::Line(a->pos - 0.75f * offset, b->pos - 0.75f * offset, 2.0f);
+      Renderer::Line(a->pos - 2.5f * offset, b->pos - 2.5f * offset, 2.0f);
       return;
     }
   }

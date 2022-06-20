@@ -2,12 +2,14 @@
 #include "Common.h"
 
 #include "Circle.h"
+#include "Line.h"
 #include "Quad.h"
 #include "Text.h"
 #include "TextCircle.h"
 
 class Renderer
-  : public QuadRenderer
+  : public LineRenderer
+  , public QuadRenderer
   , public CircleRenderer
   , public TextRenderer
   , public TextCircleRenderer

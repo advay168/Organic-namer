@@ -32,15 +32,6 @@ void QuadRenderer::Quad(const glm::vec2& v1,
   quadPoints.push_back(v3);
 }
 
-void QuadRenderer::Line(const glm::vec2& from,
-                        const glm::vec2 to,
-                        float thickness)
-{
-  glm::vec2 offset = { from.y - to.y, to.x - from.x };
-  offset = glm::normalize(offset) * thickness;
-  Quad(from + offset, from - offset, to - offset, to + offset);
-}
-
 void QuadRenderer::Begin()
 {
   quadPoints.clear();
