@@ -31,7 +31,15 @@ void Atom::draw(bool selected)
     Renderer::BorderCircle(pos, radius, color, 1.0f, glm::vec3(1.0f));
   Renderer::TextCircle(pos, radius, color, symbol, 1.0f, textColor);
 }
+
 bool Atom::isIntersecting(const glm::vec2& mousePos)
 {
   return glm::distance2(mousePos, pos) < radius * radius;
+}
+
+bool Atom::isIntersecting(const glm::vec2& boxStart, const glm::vec2& boxEnd) {
+  glm::vec2 bottomLeft = glm::min(boxStart, boxEnd);
+  glm::vec2 topRight = glm::max(boxStart, boxEnd);
+  glm::vec2 clamped = glm::clamp(pos, bottomLeft, topRight);
+  return isIntersecting(clamped);
 }

@@ -29,6 +29,9 @@ private:
   void ImGuiFrame();
 
   void handleAtomsInput();
+  void handleSelectBoxInput();
+
+  void selectFromSelectBox();
 
   Atom* findHoveredAtom();
 
@@ -50,7 +53,9 @@ private:
   bool outOfWindow = true;
 
   bool leftMouseClicked = false;
+  bool leftMousePressed = false;
   bool rightMouseClicked = false;
+  bool rightMousePressed = false;
   bool keyPressed[ImGuiKey_COUNT] = { 0 };
 
   std::list<Atom> atoms;
@@ -62,4 +67,8 @@ private:
   std::unique_ptr<Atom> tmpAtom;
 
   std::list<Bond> bonds;
+
+  glm::vec2 selectionBoxStart;
+  glm::vec2 selectionBoxEnd;
+  bool isSelecting = false;
 };

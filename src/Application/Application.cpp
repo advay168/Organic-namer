@@ -22,6 +22,7 @@ Application::Application(GLFWwindow* window)
 void Application::processInput()
 {
   handleAtomsInput();
+  handleSelectBoxInput();
 }
 
 void Application::handleAtomsInput()
@@ -35,38 +36,75 @@ void Application::handleAtomsInput()
   }
 
   if (keyPressed[ImGuiKey_Delete]) {
-    if (selectedAtom)
+    if (selectedAtom && !selectedAtomFollowMouse)
       deleteAtom(selectedAtom);
   }
 
   if (outOfWindow)
     return;
+
   if (!leftMouseClicked)
     return;
+
+  if (tmpAtom) {
+    atoms.push_back(*tmpAtom); // not same atom as vector creates copy
+    return;
+  }
+
+  if (selectedAtom && selectedAtomFollowMouse) {
+    selectedAtom = nullptr;
+    selectedAtomFollowMouse = false;
+    return;
+  }
+
   Atom* atom = findHoveredAtom();
-  if (keyPressed[ImGuiKey_LeftCtrl]) { // ctrl
-    if (!atom || atom == selectedAtom)
-      return;
-    if (selectedAtom) {
-      createBond(selectedAtom, atom);
-      selectedAtom = nullptr;
+  if (!atom) {
+    selectedAtom = nullptr;
+    return;
+  }
+
+  if (selectedAtom && atom != selectedAtom) {
+    createBond(selectedAtom, atom);
+    selectedAtom = nullptr;
+    return;
+  }
+
+  selectedAtom = atom;
+
+  if (keyPressed[ImGuiKey_LeftCtrl]) {
+    selectedAtomFollowMouse = true;
+  }
+}
+
+void Application::handleSelectBoxInput()
+{
+  if (selectedAtom || tmpAtom)
+    return;
+  if (leftMouseClicked) {
+    selectionBoxStart = selectionBoxEnd = mousePos;
+    isSelecting = true;
+  } else if (isSelecting) {
+    if (leftMousePressed) {
+      selectionBoxEnd = mousePos;
     } else {
-      selectedAtom = atom;
-    }
-    // atom->selected = true;
-  } else {                       // !ctrl
-    if (tmpAtom) {               // Placing atoms
-      atoms.push_back(*tmpAtom); // not same atom as vector creates copy
-    } else {                     // Not placing Atoms
-      if (!atom)
-        return;
-      if (selectedAtom) {
-        selectedAtom = nullptr;
-        selectedAtomFollowMouse = false;
-      } else {
-        selectedAtom = atom;
-        selectedAtomFollowMouse = true;
+      // Selection finished
+      isSelecting = false;
+      if (selectionBoxStart != selectionBoxEnd) {
+        selectFromSelectBox();
+        if (keyPressed[ImGuiKey_LeftCtrl]) {
+          selectedAtomFollowMouse = true;
+        }
       }
+    }
+  }
+}
+
+void Application::selectFromSelectBox()
+{
+  for (Atom& atom : atoms) {
+    if (atom.isIntersecting(selectionBoxStart, selectionBoxEnd)) {
+      selectedAtom = &atom;
+      return;
     }
   }
 }
@@ -131,6 +169,17 @@ void Application::drawFrame()
 
   for (Bond& bond : bonds)
     bond.draw();
+
+  if (isSelecting) {
+    glm::vec2 v1{ selectionBoxStart };
+    glm::vec2 v2{ selectionBoxStart.x, selectionBoxEnd.y };
+    glm::vec2 v3{ selectionBoxEnd };
+    glm::vec2 v4{ selectionBoxEnd.x, selectionBoxStart.y };
+    Renderer::DashedLine(v1, v2, 3.0f, 6.0f);
+    Renderer::DashedLine(v2, v3, 3.0f, 6.0f);
+    Renderer::DashedLine(v3, v4, 3.0f, 6.0f);
+    Renderer::DashedLine(v4, v1, 3.0f, 6.0f);
+  }
 }
 
 void Application::ImGuiFrame()
@@ -156,6 +205,7 @@ void Application::ImGuiFrame()
   ImGui::Text("The UI");
   ImGui::Text("windowFocused: %i", windowFocused);
   ImGui::Text("outOfWindow: %i", outOfWindow);
+  ImGui::Text("isSelecting: %i", isSelecting);
 
   ImGui::Text("Elements: ");
   ImGui::SameLine();
@@ -281,7 +331,9 @@ void Application::calcCursorPos()
 void Application::setInputState()
 {
   leftMouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+  leftMousePressed = ImGui::IsMouseDown(ImGuiMouseButton_Left);
   rightMouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
+  rightMousePressed = ImGui::IsMouseDown(ImGuiMouseButton_Right);
   for (int key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_COUNT; key++) {
     keyPressed[key] = ImGui::IsKeyDown(key);
   }
