@@ -15,6 +15,7 @@ int main()
   }
 
   WindowData windowData;
+  glfwWindowHint(GLFW_MAXIMIZED, true);
   GLFWwindow* window =
     glfwCreateWindow(800, 600, "Organic Naming", nullptr, nullptr);
   if (!window) {
