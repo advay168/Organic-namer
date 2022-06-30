@@ -14,7 +14,7 @@ public:
                          float length = 5.0f);
 
 protected:
-  static void Init();
+  static void Init(glm::mat4* view, glm::mat4* projection);
   static void Begin();
   static void End();
 };

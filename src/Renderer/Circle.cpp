@@ -17,9 +17,12 @@ static Shader* shader;
 static VertexArray* VAO;
 static Layout layout;
 static VertexBuffer* VBO;
+static glm::mat4 *view, *projection;
 
-void CircleRenderer::Init()
+void CircleRenderer::Init(glm::mat4* view_, glm::mat4* projection_)
 {
+  view = view_;
+  projection = projection_;
   shader = new Shader("res/shaders/circle.vert", "res/shaders/circle.frag");
   layout.add(GL_FLOAT, 2, "aPos")
     .add(GL_FLOAT, 2, "aCenter")
@@ -73,8 +76,8 @@ void CircleRenderer::End()
 
   VBO->setData(circlePoints.data(),
                circlePoints.size() * sizeof(circlePoints[0]));
-  glm::mat4 projection = glm::ortho(0.0f, (float)WIDTH, 0.0f, (float)HEIGHT);
 
-  shader->setMat4("projection", projection);
+  shader->setMat4("view", *view);
+  shader->setMat4("projection", *projection);
   glDrawArrays(GL_TRIANGLES, 0, circlePoints.size());
 }

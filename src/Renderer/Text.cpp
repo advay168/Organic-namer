@@ -13,6 +13,7 @@ static Shader* shader;
 static VertexArray* VAO;
 static Layout layout;
 static VertexBuffer* VBO;
+static glm::mat4 *view, *projection;
 
 struct Character
 {
@@ -33,8 +34,10 @@ struct TextData
 
 static std::vector<TextData> texts;
 
-void TextRenderer::Init()
+void TextRenderer::Init(glm::mat4* view_, glm::mat4* projection_)
 {
+  view = view_;
+  projection = projection_;
   FT_Library ft;
   FT_Face face;
   if (FT_Init_FreeType(&ft)) {
@@ -131,9 +134,8 @@ static void internalDrawText(TextData& data)
   glActiveTexture(GL_TEXTURE0);
   VAO->Bind();
 
-  glm::mat4 projection = glm::ortho(0.0f, (float)WIDTH, 0.0f, (float)HEIGHT);
-
-  shader->setMat4("projection", projection);
+  shader->setMat4("view", *view);
+  shader->setMat4("projection", *projection);
 
   for (auto c = text.begin(); c != text.end(); c++) {
     Character& ch = characters.at(*c);

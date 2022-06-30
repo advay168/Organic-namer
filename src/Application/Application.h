@@ -40,6 +40,10 @@ private:
   void deleteAtom(Atom* atomToDel);
   void deleteBond(Bond* bondToDel);
 
+  std::pair<glm::vec2, glm::vec2> calculateAtomsBoundingBox();
+
+  void bringAtomsIntoView();
+
 private:
   GLFWwindow* window;
 
@@ -51,6 +55,10 @@ private:
   glm::vec2 mousePos;
   bool windowFocused = false;
   bool outOfWindow = true;
+  float zoom = 1.0f;
+  glm::vec3 cameraPos{ WIDTH / 2.0f, HEIGHT / 2.0f, 0.0f };
+  glm::mat4 view{ 1.0f };
+  glm::mat4 projection{ 1.0f };
 
   bool leftMouseClicked = false;
   bool leftMousePressed = false;

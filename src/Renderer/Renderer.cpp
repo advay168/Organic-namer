@@ -1,11 +1,14 @@
 #include "Renderer.h"
 
+static glm::mat4 view;
+static glm::mat4 projection;
+
 void Renderer::Init()
 {
-  LineRenderer::Init();
-  QuadRenderer::Init();
-  CircleRenderer::Init();
-  TextRenderer::Init();
+  LineRenderer::Init(&view, &projection);
+  QuadRenderer::Init(&view, &projection);
+  CircleRenderer::Init(&view, &projection);
+  TextRenderer::Init(&view, &projection);
 }
 void Renderer::Begin()
 {
@@ -23,4 +26,14 @@ void Renderer::End()
   QuadRenderer::End();
   CircleRenderer::End();
   TextRenderer::End();
+}
+
+void Renderer::setViewMatrix(const glm::mat4& viewMatrix)
+{
+  view = viewMatrix;
+}
+
+void Renderer::setProjectionMatrix(const glm::mat4& projectionMatrix)
+{
+  projection = projectionMatrix;
 }

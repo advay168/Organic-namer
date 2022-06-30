@@ -5,7 +5,25 @@
 
 #include "Graphics/WindowData.h"
 #include "Renderer/Renderer.h"
-#include "imgui.h"
+#include "glm/gtx/transform.hpp"
+
+template<typename T>
+static inline void DISPLAY_helper(const std::string& varName, T var)
+{
+  std::stringstream ss;
+  ss << var;
+  ImGui::Text((varName + ": %s").c_str(), ss.str().c_str());
+}
+
+template<glm::length_t num>
+static inline void DISPLAY_helper(const std::string& varName,
+                                  const glm::vec<num, float>& var)
+{
+  auto tmp(var);
+  ImGui::DragScalarN(varName.c_str(), ImGuiDataType_Float, &tmp.x, num);
+}
+
+#define DISPLAY(var) DISPLAY_helper(#var, var)
 
 int offset = rand();
 Application::Application(GLFWwindow* window)
@@ -23,6 +41,19 @@ void Application::processInput()
 {
   handleAtomsInput();
   handleSelectBoxInput();
+  float speed = 500.0f;
+  if (keyPressed[ImGuiKey_W]) {
+    cameraPos.y += deltaTime * speed;
+  }
+  if (keyPressed[ImGuiKey_A]) {
+    cameraPos.x -= deltaTime * speed;
+  }
+  if (keyPressed[ImGuiKey_S]) {
+    cameraPos.y -= deltaTime * speed;
+  }
+  if (keyPressed[ImGuiKey_D]) {
+    cameraPos.x += deltaTime * speed;
+  }
 }
 
 void Application::handleAtomsInput()
@@ -78,6 +109,8 @@ void Application::handleAtomsInput()
 
 void Application::handleSelectBoxInput()
 {
+  if (outOfWindow)
+    return;
   if (selectedAtom || tmpAtom)
     return;
   if (leftMouseClicked) {
@@ -151,6 +184,43 @@ void Application::deleteBond(Bond* bondToDel)
   bonds.erase(it);
 }
 
+std::pair<glm::vec2, glm::vec2> Application::calculateAtomsBoundingBox()
+{
+  if (atoms.empty()) {
+    return { { 0.0f, HEIGHT }, { WIDTH, 0.0f } };
+  }
+  glm::vec2 topRight(0.0f, 0.0f);
+  glm::vec2 bottomLeft(WIDTH, HEIGHT);
+  for (Atom& atom : atoms) {
+    bottomLeft = glm::min(bottomLeft, atom.pos);
+    topRight = glm::max(topRight, atom.pos);
+  }
+  bottomLeft -= atoms.begin()->radius;
+  topRight += atoms.begin()->radius;
+  return { { bottomLeft.x, topRight.y }, { topRight.x, bottomLeft.y } };
+}
+
+void Application::bringAtomsIntoView()
+{
+  auto [topLeft, bottomRight] = calculateAtomsBoundingBox();
+  float offset = 5.0f;
+  topLeft += glm::vec2(-offset, offset);
+  bottomRight += glm::vec2(offset, -offset);
+  float rectWidth = bottomRight.x - topLeft.x;
+  float rectHeight = topLeft.y - bottomRight.y;
+
+  glm::vec2 rectCentre = (topLeft + bottomRight) / 2.0f;
+  cameraPos = { rectCentre.x, rectCentre.y, 1.0f };
+
+  float virtualAspect = float(WIDTH) / HEIGHT;
+  float rectAspect = rectWidth / rectHeight;
+  if (rectAspect > virtualAspect) {
+    zoom = WIDTH / rectWidth;
+  } else {
+    zoom = HEIGHT / rectHeight;
+  }
+}
+
 void Application::updateFrame()
 {
   if (selectedAtom && selectedAtomFollowMouse)
@@ -158,6 +228,12 @@ void Application::updateFrame()
   if (tmpAtom) {
     tmpAtom->pos = mousePos;
   }
+  glm::vec3 centre(glm::vec3(WIDTH / 2.0f, HEIGHT / 2.0f, 0.0f));
+  view = glm::mat4(1.0f);
+  view = glm::translate(view, centre);
+  view = glm::scale(view, { zoom, zoom, 1.0f });
+  view = glm::translate(view, -cameraPos);
+  projection = glm::ortho(0.0f, (float)WIDTH, 0.0f, (float)HEIGHT);
 }
 
 void Application::drawFrame()
@@ -199,13 +275,36 @@ void Application::ImGuiFrame()
     ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
   }
 
+  ImGui::SetCursorPos({ width - 30.0f, height - 45.0f });
+  ImGui::BeginGroup();
+  glm::vec2 oldCursorPos = ImGui::GetCursorPos();
+  if (ImGui::Button("Home")) {
+    zoom = 1.0f;
+    cameraPos = { WIDTH / 2.0f, HEIGHT / 2.0f, 1.0f };
+  }
+  ImGui::SameLine();
+  float HomeWidth = ImGui::GetCursorPos().x - oldCursorPos.x - 4.0f;
+  ImGui::Dummy({});
+  ImGui::Indent((HomeWidth - 20.0f) / 2.0f);
+  if (ImGui::Button("-", { 20.0f, 20.0f })) {
+    zoom -= 0.3f;
+  }
+  if (ImGui::Button("+", { 20.0f, 20.0f })) {
+    zoom += 0.3f;
+  }
+  ImGui::EndGroup();
   ImGui::End();
 
-  ImGui::Begin("MyMainWindow");
+  ImGui::Begin("Controls");
   ImGui::Text("The UI");
-  ImGui::Text("windowFocused: %i", windowFocused);
-  ImGui::Text("outOfWindow: %i", outOfWindow);
-  ImGui::Text("isSelecting: %i", isSelecting);
+  DISPLAY(windowFocused);
+  DISPLAY(outOfWindow);
+  DISPLAY(isSelecting);
+  DISPLAY(deltaTime);
+  DISPLAY(cameraPos);
+  DISPLAY(zoom);
+
+  ImGui::Separator();
 
   ImGui::Text("Elements: ");
   ImGui::SameLine();
@@ -227,6 +326,10 @@ void Application::ImGuiFrame()
       }
     }
     ImGui::EndCombo();
+  }
+
+  if (ImGui::Button("Bring all atoms into view")) {
+    bringAtomsIntoView();
   }
 
   if (selectedAtom) {
@@ -259,7 +362,7 @@ void Application::ImGuiFrame()
 void Application::runFrame()
 {
   float currentFrame = glfwGetTime();
-  deltaTime = lastFrame - lastFrame;
+  deltaTime = currentFrame - lastFrame;
   lastFrame = currentFrame;
 
   processInput();
@@ -272,6 +375,8 @@ void Application::runFrame()
 
   screen.Bind();
   Renderer::Begin();
+  Renderer::setViewMatrix(view);
+  Renderer::setProjectionMatrix(projection);
   drawFrame();
   Renderer::End();
   screen.unBind();
@@ -326,6 +431,7 @@ void Application::calcCursorPos()
   }
   localCoord.y = 1.0f - localCoord.y;
   mousePos = localCoord * glm::vec2(WIDTH, HEIGHT);
+  mousePos = glm::inverse(view) * glm::vec4(mousePos.x, mousePos.y, 0.0f, 1.0f);
 }
 
 void Application::setInputState()
