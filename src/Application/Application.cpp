@@ -7,29 +7,12 @@
 #include "Renderer/Renderer.h"
 #include "glm/gtx/transform.hpp"
 
-template<typename T>
-static inline void DISPLAY_helper(const std::string& varName, T var)
-{
-  std::stringstream ss;
-  ss << var;
-  ImGui::Text((varName + ": %s").c_str(), ss.str().c_str());
-}
-
-template<glm::length_t num>
-static inline void DISPLAY_helper(const std::string& varName,
-                                  const glm::vec<num, float>& var)
-{
-  auto tmp(var);
-  ImGui::DragScalarN(varName.c_str(), ImGuiDataType_Float, &tmp.x, num);
-}
-
-#define DISPLAY(var) DISPLAY_helper(#var, var)
-
 int offset = rand();
 Application::Application(GLFWwindow* window)
   : window(window)
+  , camera(inputState)
+  , selectionBox(inputState)
 {
-  setCallbacks();
   Renderer::Init();
 
   elementsList.emplace_back("Hydrogen", "H");
@@ -40,25 +23,22 @@ Application::Application(GLFWwindow* window)
 void Application::processInput()
 {
   handleAtomsInput();
-  handleSelectBoxInput();
-  float speed = 500.0f;
-  if (keyPressed[ImGuiKey_W]) {
-    cameraPos.y += deltaTime * speed;
-  }
-  if (keyPressed[ImGuiKey_A]) {
-    cameraPos.x -= deltaTime * speed;
-  }
-  if (keyPressed[ImGuiKey_S]) {
-    cameraPos.y -= deltaTime * speed;
-  }
-  if (keyPressed[ImGuiKey_D]) {
-    cameraPos.x += deltaTime * speed;
+  camera.processInput(deltaTime);
+  if (!(selectedAtom || tmpAtom))
+    selectionBox.processInput(deltaTime);
+  if (selectionBox.shouldSelectAtoms) {
+    selectionBox.shouldSelectAtoms = false;
+    const auto& [start, end] = selectionBox.getSelectionBox();
+    selectAtomWithin(start, end);
+    if (inputState.isKeyPressed(ImGuiKey_LeftCtrl)) {
+      selectedAtomFollowMouse = true;
+    }
   }
 }
 
 void Application::handleAtomsInput()
 {
-  if (keyPressed[ImGuiKey_Escape]) {
+  if (inputState.isKeyPressed(ImGuiKey_Escape)) {
     selectedAtom = nullptr;
     selectedAtomFollowMouse = false;
     selectedTmpAtom = -1;
@@ -66,15 +46,15 @@ void Application::handleAtomsInput()
     return;
   }
 
-  if (keyPressed[ImGuiKey_Delete]) {
+  if (inputState.isKeyPressed(ImGuiKey_Delete)) {
     if (selectedAtom && !selectedAtomFollowMouse)
       deleteAtom(selectedAtom);
   }
 
-  if (outOfWindow)
+  if (inputState.outOfWindow)
     return;
 
-  if (!leftMouseClicked)
+  if (!inputState.leftMouseClicked)
     return;
 
   if (tmpAtom) {
@@ -102,40 +82,15 @@ void Application::handleAtomsInput()
 
   selectedAtom = atom;
 
-  if (keyPressed[ImGuiKey_LeftCtrl]) {
+  if (inputState.isKeyPressed(ImGuiKey_LeftCtrl)) {
     selectedAtomFollowMouse = true;
   }
 }
 
-void Application::handleSelectBoxInput()
-{
-  if (outOfWindow)
-    return;
-  if (selectedAtom || tmpAtom)
-    return;
-  if (leftMouseClicked) {
-    selectionBoxStart = selectionBoxEnd = mousePos;
-    isSelecting = true;
-  } else if (isSelecting) {
-    if (leftMousePressed) {
-      selectionBoxEnd = mousePos;
-    } else {
-      // Selection finished
-      isSelecting = false;
-      if (selectionBoxStart != selectionBoxEnd) {
-        selectFromSelectBox();
-        if (keyPressed[ImGuiKey_LeftCtrl]) {
-          selectedAtomFollowMouse = true;
-        }
-      }
-    }
-  }
-}
-
-void Application::selectFromSelectBox()
+void Application::selectAtomWithin(const glm::vec2& start, const glm::vec2& end)
 {
   for (Atom& atom : atoms) {
-    if (atom.isIntersecting(selectionBoxStart, selectionBoxEnd)) {
+    if (atom.isIntersecting(start, end)) {
       selectedAtom = &atom;
       return;
     }
@@ -145,7 +100,7 @@ void Application::selectFromSelectBox()
 Atom* Application::findHoveredAtom()
 {
   for (Atom& atom : atoms) {
-    if (atom.isIntersecting(mousePos)) {
+    if (atom.isIntersecting(inputState.mousePos)) {
       return &atom;
     }
   }
@@ -210,30 +165,24 @@ void Application::bringAtomsIntoView()
   float rectHeight = topLeft.y - bottomRight.y;
 
   glm::vec2 rectCentre = (topLeft + bottomRight) / 2.0f;
-  cameraPos = { rectCentre.x, rectCentre.y, 1.0f };
+  camera.setCameraPos({ rectCentre.x, rectCentre.y, 1.0f });
 
   float virtualAspect = float(WIDTH) / HEIGHT;
   float rectAspect = rectWidth / rectHeight;
   if (rectAspect > virtualAspect) {
-    zoom = WIDTH / rectWidth;
+    camera.setZoom(WIDTH / rectWidth);
   } else {
-    zoom = HEIGHT / rectHeight;
+    camera.setZoom(HEIGHT / rectHeight);
   }
 }
 
 void Application::updateFrame()
 {
   if (selectedAtom && selectedAtomFollowMouse)
-    selectedAtom->pos = mousePos;
+    selectedAtom->pos = inputState.mousePos;
   if (tmpAtom) {
-    tmpAtom->pos = mousePos;
+    tmpAtom->pos = inputState.mousePos;
   }
-  glm::vec3 centre(glm::vec3(WIDTH / 2.0f, HEIGHT / 2.0f, 0.0f));
-  view = glm::mat4(1.0f);
-  view = glm::translate(view, centre);
-  view = glm::scale(view, { zoom, zoom, 1.0f });
-  view = glm::translate(view, -cameraPos);
-  projection = glm::ortho(0.0f, (float)WIDTH, 0.0f, (float)HEIGHT);
 }
 
 void Application::drawFrame()
@@ -246,16 +195,7 @@ void Application::drawFrame()
   for (Bond& bond : bonds)
     bond.draw();
 
-  if (isSelecting) {
-    glm::vec2 v1{ selectionBoxStart };
-    glm::vec2 v2{ selectionBoxStart.x, selectionBoxEnd.y };
-    glm::vec2 v3{ selectionBoxEnd };
-    glm::vec2 v4{ selectionBoxEnd.x, selectionBoxStart.y };
-    Renderer::DashedLine(v1, v2, 3.0f, 6.0f);
-    Renderer::DashedLine(v2, v3, 3.0f, 6.0f);
-    Renderer::DashedLine(v3, v4, 3.0f, 6.0f);
-    Renderer::DashedLine(v4, v1, 3.0f, 6.0f);
-  }
+  selectionBox.draw();
 }
 
 void Application::ImGuiFrame()
@@ -264,7 +204,7 @@ void Application::ImGuiFrame()
   calcWindowSize();
   calcCursorPos();
   setInputState();
-  windowFocused = ImGui::IsWindowFocused();
+  inputState.windowFocused = ImGui::IsWindowFocused();
 
   ImGui::Image((void*)(intptr_t)screen.textureColorbuffer,
                { width, height },
@@ -279,30 +219,27 @@ void Application::ImGuiFrame()
   ImGui::BeginGroup();
   glm::vec2 oldCursorPos = ImGui::GetCursorPos();
   if (ImGui::Button("Home")) {
-    zoom = 1.0f;
-    cameraPos = { WIDTH / 2.0f, HEIGHT / 2.0f, 1.0f };
+    camera.Home();
   }
   ImGui::SameLine();
   float HomeWidth = ImGui::GetCursorPos().x - oldCursorPos.x - 4.0f;
   ImGui::Dummy({});
   ImGui::Indent((HomeWidth - 20.0f) / 2.0f);
   if (ImGui::Button("-", { 20.0f, 20.0f })) {
-    zoom -= 0.3f;
+    camera.ZoomOut();
   }
   if (ImGui::Button("+", { 20.0f, 20.0f })) {
-    zoom += 0.3f;
+    camera.ZoomIn();
   }
   ImGui::EndGroup();
   ImGui::End();
 
   ImGui::Begin("Controls");
   ImGui::Text("The UI");
-  DISPLAY(windowFocused);
-  DISPLAY(outOfWindow);
-  DISPLAY(isSelecting);
+  DISPLAY(inputState.windowFocused);
+  DISPLAY(inputState.outOfWindow);
   DISPLAY(deltaTime);
-  DISPLAY(cameraPos);
-  DISPLAY(zoom);
+  camera.debugDisplay();
 
   ImGui::Separator();
 
@@ -375,8 +312,8 @@ void Application::runFrame()
 
   screen.Bind();
   Renderer::Begin();
-  Renderer::setViewMatrix(view);
-  Renderer::setProjectionMatrix(projection);
+  Renderer::setViewMatrix(camera.getViewMatrix());
+  Renderer::setProjectionMatrix(camera.getProjectionMatrix());
   drawFrame();
   Renderer::End();
   screen.unBind();
@@ -424,37 +361,25 @@ void Application::calcCursorPos()
 
   glm::vec2 localCoord = (realMousePos - cursorPos) / window_size;
   if (localCoord != glm::clamp(localCoord, { 0.0f, 0.0f }, { 1.0f, 1.0f })) {
-    outOfWindow = true;
+    inputState.outOfWindow = true;
     localCoord = glm::clamp(localCoord, { 0.0f, 0.0f }, { 1.0f, 1.0f });
   } else {
-    outOfWindow = false;
+    inputState.outOfWindow = false;
   }
   localCoord.y = 1.0f - localCoord.y;
-  mousePos = localCoord * glm::vec2(WIDTH, HEIGHT);
-  mousePos = glm::inverse(view) * glm::vec4(mousePos.x, mousePos.y, 0.0f, 1.0f);
+  inputState.mousePos = localCoord * glm::vec2(WIDTH, HEIGHT);
+  inputState.mousePos =
+    camera.getInverseViewMatrix() *
+    glm::vec4(inputState.mousePos.x, inputState.mousePos.y, 0.0f, 1.0f);
 }
 
 void Application::setInputState()
 {
-  leftMouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
-  leftMousePressed = ImGui::IsMouseDown(ImGuiMouseButton_Left);
-  rightMouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
-  rightMousePressed = ImGui::IsMouseDown(ImGuiMouseButton_Right);
+  inputState.leftMouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
+  inputState.leftMousePressed = ImGui::IsMouseDown(ImGuiMouseButton_Left);
+  inputState.rightMouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
+  inputState.rightMousePressed = ImGui::IsMouseDown(ImGuiMouseButton_Right);
   for (int key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_COUNT; key++) {
-    keyPressed[key] = ImGui::IsKeyDown(key);
+    inputState.keyPressed[key] = ImGui::IsKeyDown(key);
   }
-}
-
-void Application::setCallbacks()
-{
-  glfwSetFramebufferSizeCallback(
-    window, [](GLFWwindow* window, int width, int height) {
-      WindowData& windowData = *(WindowData*)glfwGetWindowUserPointer(window);
-      windowData.application->framebuffer_size_callback(width, height);
-    });
-}
-
-void Application::framebuffer_size_callback(int width, int height)
-{
-  glViewport(0, 0, width, height);
 }

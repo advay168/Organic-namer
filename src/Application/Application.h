@@ -3,8 +3,11 @@
 
 #include "Graphics/Screen.h"
 
+#include "InputState.h"
+#include "Camera.h"
 #include "Atom.h"
 #include "Bond.h"
+#include "SelectionBox.h"
 
 class Application
 {
@@ -14,10 +17,6 @@ public:
   void runFrame();
 
 private:
-  void setCallbacks();
-
-  void framebuffer_size_callback(int width, int height);
-
   void calcWindowSize();
   void calcCursorPos();
   void setInputState();
@@ -31,7 +30,7 @@ private:
   void handleAtomsInput();
   void handleSelectBoxInput();
 
-  void selectFromSelectBox();
+  void selectAtomWithin(const glm::vec2& start, const glm::vec2& end);
 
   Atom* findHoveredAtom();
 
@@ -52,19 +51,10 @@ private:
   float lastFrame = 0.0f;
   float width;
   float height;
-  glm::vec2 mousePos;
-  bool windowFocused = false;
-  bool outOfWindow = true;
-  float zoom = 1.0f;
-  glm::vec3 cameraPos{ WIDTH / 2.0f, HEIGHT / 2.0f, 0.0f };
-  glm::mat4 view{ 1.0f };
-  glm::mat4 projection{ 1.0f };
 
-  bool leftMouseClicked = false;
-  bool leftMousePressed = false;
-  bool rightMouseClicked = false;
-  bool rightMousePressed = false;
-  bool keyPressed[ImGuiKey_COUNT] = { 0 };
+  Camera camera;
+
+  InputState inputState;
 
   std::list<Atom> atoms;
   Atom* selectedAtom = nullptr;
@@ -76,7 +66,5 @@ private:
 
   std::list<Bond> bonds;
 
-  glm::vec2 selectionBoxStart;
-  glm::vec2 selectionBoxEnd;
-  bool isSelecting = false;
+  SelectionBox selectionBox;
 };
