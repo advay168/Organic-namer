@@ -22,7 +22,6 @@
 
 #include "Constants.h"
 
-
 template<typename T>
 inline void DISPLAY_helper(const std::string& varName, T var)
 {
@@ -33,7 +32,7 @@ inline void DISPLAY_helper(const std::string& varName, T var)
 
 template<glm::length_t num>
 inline void DISPLAY_helper(const std::string& varName,
-                                  const glm::vec<num, float>& var)
+                           const glm::vec<num, float>& var)
 {
   auto tmp(var);
   ImGui::DragScalarN(varName.c_str(), ImGuiDataType_Float, &tmp.x, num);

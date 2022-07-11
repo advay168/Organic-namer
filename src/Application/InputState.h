@@ -12,7 +12,5 @@ struct InputState
   bool rightMousePressed = false;
   bool keyPressed[ImGuiKey_COUNT] = { 0 };
 
-  inline bool isKeyPressed(int key){
-    return keyPressed[key];
-  }
+  inline bool isKeyPressed(int key) { return keyPressed[key]; }
 };

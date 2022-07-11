@@ -41,5 +41,5 @@ void SelectionBox::draw()
 }
 std::pair<const glm::vec2&, const glm::vec2&> SelectionBox::getSelectionBox()
 {
-  return {selectionBoxStart, selectionBoxEnd};
+  return { selectionBoxStart, selectionBoxEnd };
 }

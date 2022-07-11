@@ -20,6 +20,47 @@ Application::Application(GLFWwindow* window)
   elementsList.emplace_back("Lithium", "Li");
 }
 
+void Application::runFrame()
+{
+  float currentFrame = glfwGetTime();
+  deltaTime = currentFrame - lastFrame;
+  lastFrame = currentFrame;
+
+  processInput();
+  updateFrame();
+  ImGui_ImplOpenGL3_NewFrame();
+  ImGui_ImplGlfw_NewFrame();
+  ImGui::NewFrame();
+  ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
+  ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), dockspace_flags);
+
+  screen.Bind();
+  Renderer::Begin();
+  Renderer::setViewMatrix(camera.getViewMatrix());
+  Renderer::setProjectionMatrix(camera.getProjectionMatrix());
+  drawFrame();
+  Renderer::End();
+  screen.unBind();
+
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  ImGuiFrame();
+  ImGui::Render();
+  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+  ImGuiIO& io = ImGui::GetIO();
+  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
+    GLFWwindow* backup_current_context = glfwGetCurrentContext();
+    ImGui::UpdatePlatformWindows();
+    ImGui::RenderPlatformWindowsDefault();
+    glfwMakeContextCurrent(backup_current_context);
+  }
+
+  glfwSwapBuffers(window);
+  glfwPollEvents();
+}
+
 void Application::processInput()
 {
   handleAtomsInput();
@@ -94,85 +135,6 @@ void Application::selectAtomWithin(const glm::vec2& start, const glm::vec2& end)
       selectedAtom = &atom;
       return;
     }
-  }
-}
-
-Atom* Application::findHoveredAtom()
-{
-  for (Atom& atom : atoms) {
-    if (atom.isIntersecting(inputState.mousePos)) {
-      return &atom;
-    }
-  }
-  return nullptr;
-}
-
-void Application::createBond(Atom* a, Atom* b)
-{
-  Bond tmpBond(a, b);
-  for (Bond& bond : bonds) {
-    if (bond == tmpBond) {
-      ++bond.count;
-      return;
-    }
-  }
-  bonds.push_back(tmpBond);
-}
-
-void Application::deleteAtom(Atom* atomToDel)
-{
-  while (atomToDel->bonds.size()) {
-    deleteBond(atomToDel->bonds[0]);
-  }
-  atoms.erase(std::find_if(atoms.begin(), atoms.end(), [atomToDel](Atom& a) {
-    return &a == atomToDel;
-  }));
-  if (selectedAtom == atomToDel)
-    selectedAtom = nullptr;
-}
-
-void Application::deleteBond(Bond* bondToDel)
-{
-  auto it = std::find_if(bonds.begin(), bonds.end(), [bondToDel](Bond& x) {
-    return &x == bondToDel;
-  });
-  bonds.erase(it);
-}
-
-std::pair<glm::vec2, glm::vec2> Application::calculateAtomsBoundingBox()
-{
-  if (atoms.empty()) {
-    return { { 0.0f, HEIGHT }, { WIDTH, 0.0f } };
-  }
-  glm::vec2 topRight(0.0f, 0.0f);
-  glm::vec2 bottomLeft(WIDTH, HEIGHT);
-  for (Atom& atom : atoms) {
-    bottomLeft = glm::min(bottomLeft, atom.pos);
-    topRight = glm::max(topRight, atom.pos);
-  }
-  bottomLeft -= atoms.begin()->radius;
-  topRight += atoms.begin()->radius;
-  return { { bottomLeft.x, topRight.y }, { topRight.x, bottomLeft.y } };
-}
-
-void Application::bringAtomsIntoView()
-{
-  auto [topLeft, bottomRight] = calculateAtomsBoundingBox();
-  float offset = 5.0f;
-  topLeft += glm::vec2(-offset, offset);
-  bottomRight += glm::vec2(offset, -offset);
-  float rectWidth = bottomRight.x - topLeft.x;
-  float rectHeight = topLeft.y - bottomRight.y;
-
-  glm::vec2 rectCentre = (topLeft + bottomRight) / 2.0f;
-  camera.setCameraPos({ rectCentre.x, rectCentre.y, 1.0f });
-
-  float virtualAspect = float(WIDTH) / HEIGHT;
-  float rectAspect = rectWidth / rectHeight;
-  if (rectAspect > virtualAspect) {
-    camera.setZoom(WIDTH / rectWidth);
-  } else {
-    camera.setZoom(HEIGHT / rectHeight);
   }
 }
 
@@ -296,45 +258,83 @@ void Application::ImGuiFrame()
   ImGui::ShowMetricsWindow();
 }
 
-void Application::runFrame()
+void Application::createBond(Atom* a, Atom* b)
 {
-  float currentFrame = glfwGetTime();
-  deltaTime = currentFrame - lastFrame;
-  lastFrame = currentFrame;
-
-  processInput();
-  updateFrame();
-  ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
-  ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
-  ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), dockspace_flags);
-
-  screen.Bind();
-  Renderer::Begin();
-  Renderer::setViewMatrix(camera.getViewMatrix());
-  Renderer::setProjectionMatrix(camera.getProjectionMatrix());
-  drawFrame();
-  Renderer::End();
-  screen.unBind();
-
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  ImGuiFrame();
-  ImGui::Render();
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-  ImGuiIO& io = ImGui::GetIO();
-  if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-    GLFWwindow* backup_current_context = glfwGetCurrentContext();
-    ImGui::UpdatePlatformWindows();
-    ImGui::RenderPlatformWindowsDefault();
-    glfwMakeContextCurrent(backup_current_context);
+  Bond tmpBond(a, b);
+  for (Bond& bond : bonds) {
+    if (bond == tmpBond) {
+      ++bond.count;
+      return;
+    }
   }
+  bonds.push_back(tmpBond);
+}
 
-  glfwSwapBuffers(window);
-  glfwPollEvents();
+void Application::deleteAtom(Atom* atomToDel)
+{
+  while (atomToDel->bonds.size()) {
+    deleteBond(atomToDel->bonds[0]);
+  }
+  atoms.erase(std::find_if(atoms.begin(), atoms.end(), [atomToDel](Atom& a) {
+    return &a == atomToDel;
+  }));
+  if (selectedAtom == atomToDel)
+    selectedAtom = nullptr;
+}
+
+void Application::deleteBond(Bond* bondToDel)
+{
+  auto it = std::find_if(bonds.begin(), bonds.end(), [bondToDel](Bond& x) {
+    return &x == bondToDel;
+  });
+  bonds.erase(it);
+}
+
+std::pair<glm::vec2, glm::vec2> Application::calculateAtomsBoundingBox()
+{
+  if (atoms.empty()) {
+    return { { 0.0f, HEIGHT }, { WIDTH, 0.0f } };
+  }
+  glm::vec2 topRight(0.0f, 0.0f);
+  glm::vec2 bottomLeft(WIDTH, HEIGHT);
+  for (Atom& atom : atoms) {
+    bottomLeft = glm::min(bottomLeft, atom.pos);
+    topRight = glm::max(topRight, atom.pos);
+  }
+  bottomLeft -= atoms.begin()->radius;
+  topRight += atoms.begin()->radius;
+  return { { bottomLeft.x, topRight.y }, { topRight.x, bottomLeft.y } };
+}
+
+Atom* Application::findHoveredAtom()
+{
+  for (Atom& atom : atoms) {
+    if (atom.isIntersecting(inputState.mousePos)) {
+      return &atom;
+    }
+  }
+  return nullptr;
+}
+
+void Application::bringAtomsIntoView()
+{
+  auto [topLeft, bottomRight] = calculateAtomsBoundingBox();
+  float offset = 5.0f;
+  topLeft += glm::vec2(-offset, offset);
+  bottomRight += glm::vec2(offset, -offset);
+  float rectWidth = bottomRight.x - topLeft.x;
+  float rectHeight = topLeft.y - bottomRight.y;
+
+  glm::vec2 rectCentre = (topLeft + bottomRight) / 2.0f;
+  camera.setCameraPos({ rectCentre.x, rectCentre.y, 1.0f });
+
+  float virtualAspect = float(WIDTH) / HEIGHT;
+  float rectAspect = rectWidth / rectHeight;
+  if (rectAspect > virtualAspect) {
+    camera.setZoom(WIDTH / rectWidth);
+  } else {
+    camera.setZoom(HEIGHT / rectHeight);
+  }
 }
 
 void Application::calcWindowSize()

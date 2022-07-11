@@ -12,6 +12,7 @@ public:
 
   std::pair<const glm::vec2&, const glm::vec2&> getSelectionBox();
   bool shouldSelectAtoms = false;
+
 private:
   InputState& inputState;
   glm::vec2 selectionBoxStart;
