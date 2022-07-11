@@ -24,6 +24,9 @@ private:
   void updateFrame();
   void drawFrame();
   void ImGuiFrame();
+  void displayZoomOptions();
+  void displayElements();
+  void displayDeletionOptions();
 
   void createBond(Atom* a, Atom* b);
   void deleteAtom(Atom* atomToDel);

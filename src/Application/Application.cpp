@@ -162,21 +162,50 @@ void Application::drawFrame()
 
 void Application::ImGuiFrame()
 {
-  ImGui::Begin("Application");
-  calcWindowSize();
-  calcCursorPos();
-  setInputState();
-  inputState.windowFocused = ImGui::IsWindowFocused();
+  {
+    ImGui::Begin("Application");
+    calcWindowSize();
+    calcCursorPos();
+    setInputState();
+    inputState.windowFocused = ImGui::IsWindowFocused();
 
-  ImGui::Image((void*)(intptr_t)screen.textureColorbuffer,
-               { width, height },
-               { 0.0f, 1.0f },
-               { 1.0f, 0.0f });
+    ImGui::Image((void*)(intptr_t)screen.textureColorbuffer,
+                 { width, height },
+                 { 0.0f, 1.0f },
+                 { 1.0f, 0.0f });
 
-  if (selectedAtom && selectedAtomFollowMouse) {
-    ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
-  }
+    if (selectedAtom && selectedAtomFollowMouse) {
+      ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+    }
+    displayZoomOptions();
+    ImGui::End();
+  } // Application window
 
+  {
+    ImGui::Begin("Controls");
+    ImGui::Text("The UI");
+    DISPLAY(inputState.windowFocused);
+    DISPLAY(inputState.outOfWindow);
+    DISPLAY(deltaTime);
+    camera.debugDisplay();
+
+    ImGui::Separator();
+    displayElements();
+
+    if (ImGui::Button("Bring all atoms into view")) {
+      bringAtomsIntoView();
+    }
+
+    displayDeletionOptions();
+
+    ImGui::End();
+  } // Controls menu
+
+  ImGui::ShowMetricsWindow();
+}
+
+void Application::displayZoomOptions()
+{
   ImGui::SetCursorPos({ width - 30.0f, height - 45.0f });
   ImGui::BeginGroup();
   glm::vec2 oldCursorPos = ImGui::GetCursorPos();
@@ -194,17 +223,10 @@ void Application::ImGuiFrame()
     camera.ZoomIn();
   }
   ImGui::EndGroup();
-  ImGui::End();
+}
 
-  ImGui::Begin("Controls");
-  ImGui::Text("The UI");
-  DISPLAY(inputState.windowFocused);
-  DISPLAY(inputState.outOfWindow);
-  DISPLAY(deltaTime);
-  camera.debugDisplay();
-
-  ImGui::Separator();
-
+void Application::displayElements()
+{
   ImGui::Text("Elements: ");
   ImGui::SameLine();
   if (ImGui::BeginCombo("###atomCombo",
@@ -226,11 +248,10 @@ void Application::ImGuiFrame()
     }
     ImGui::EndCombo();
   }
+}
 
-  if (ImGui::Button("Bring all atoms into view")) {
-    bringAtomsIntoView();
-  }
-
+void Application::displayDeletionOptions()
+{
   if (selectedAtom) {
     ImGui::Text("%s", selectedAtom->name.c_str());
     if (ImGui::Button("Delete Atom")) {
@@ -252,10 +273,6 @@ void Application::ImGuiFrame()
       }
     }
   }
-
-  ImGui::End();
-
-  ImGui::ShowMetricsWindow();
 }
 
 void Application::createBond(Atom* a, Atom* b)
