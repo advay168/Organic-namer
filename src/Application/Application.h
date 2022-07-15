@@ -7,6 +7,7 @@
 #include "Bond.h"
 #include "Camera.h"
 #include "InputState.h"
+#include "PhysicsFormatter.h"
 #include "SelectionBox.h"
 
 class Application
@@ -64,4 +65,7 @@ private:
   std::list<Bond> bonds;
 
   SelectionBox selectionBox;
+
+  PhysicsFormatter physicsFormatter;
+  bool simulating = false;
 };

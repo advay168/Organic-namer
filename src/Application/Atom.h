@@ -21,4 +21,6 @@ struct Atom
   std::string symbol;
   glm::vec2 pos;
   glm::vec3 color;
+
+  glm::vec2 force{ 0.0f };
 };

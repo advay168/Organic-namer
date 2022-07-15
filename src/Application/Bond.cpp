@@ -47,6 +47,11 @@ Atom& Bond::other(Atom* x)
   return *a;
 }
 
+float Bond::length()
+{
+  return (a->pos - b->pos).length();
+}
+
 void Bond::draw()
 {
   glm::vec2 line(b->pos - a->pos);

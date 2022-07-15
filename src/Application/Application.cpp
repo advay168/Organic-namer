@@ -5,6 +5,7 @@
 
 #include "Graphics/WindowData.h"
 #include "Renderer/Renderer.h"
+#include "glm/gtc/random.hpp"
 #include "glm/gtx/transform.hpp"
 
 int offset = rand();
@@ -12,6 +13,7 @@ Application::Application(GLFWwindow* window)
   : window(window)
   , camera(inputState)
   , selectionBox(inputState)
+  , physicsFormatter(atoms, bonds)
 {
   Renderer::Init();
 
@@ -145,6 +147,8 @@ void Application::updateFrame()
   if (tmpAtom) {
     tmpAtom->pos = inputState.mousePos;
   }
+  if (simulating)
+    physicsFormatter.applyForce();
 }
 
 void Application::drawFrame()
@@ -158,6 +162,9 @@ void Application::drawFrame()
     bond.draw();
 
   selectionBox.draw();
+  physicsFormatter.draw();
+  // auto [a, b] = calculateAtomsBoundingBox();
+  // Renderer::Rectangle(a, b);
 }
 
 void Application::ImGuiFrame()
@@ -187,6 +194,12 @@ void Application::ImGuiFrame()
     DISPLAY(inputState.windowFocused);
     DISPLAY(inputState.outOfWindow);
     DISPLAY(deltaTime);
+    DISPLAY(atoms.size());
+    DISPLAY("Atom Positions");
+    for (Atom& atom : atoms) {
+      DISPLAY(atom.pos.x);
+      DISPLAY(atom.pos.y);
+    }
     camera.debugDisplay();
 
     ImGui::Separator();
@@ -195,6 +208,22 @@ void Application::ImGuiFrame()
     if (ImGui::Button("Bring all atoms into view")) {
       bringAtomsIntoView();
     }
+
+    if (ImGui::Button("Simulate")) {
+      physicsFormatter.exertForce();
+    }
+
+    if (ImGui::Button("Apply force")) {
+      physicsFormatter.applyForce();
+    }
+
+    if (ImGui::Button("Randomise Positions")) {
+      for (Atom& atom : atoms) {
+        atom.pos = glm::linearRand(glm::vec2(0, 0), glm::vec2(WIDTH, HEIGHT));
+      }
+    }
+
+    ImGui::Checkbox("Simulation", &simulating);
 
     displayDeletionOptions();
 

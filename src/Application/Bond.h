@@ -21,6 +21,8 @@ struct Bond
   Atom& other(Atom& x);
   Atom& other(Atom* x);
 
+  float length();
+
   Atom *a, *b;
 
   uint8_t count = 1;
