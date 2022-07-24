@@ -19,10 +19,12 @@ private:
   void threeBonds(Atom& centralAtom);
   void fourBonds(Atom& centralAtom);
 
+  void optimiseForce();
+
 private:
   std::list<Atom>& atoms;
   std::list<Bond>& bonds;
-  static constexpr float bondLength = 240.0f;
+  static constexpr float bondLength = 340.0f;
 
   struct DrawableAtom
   {

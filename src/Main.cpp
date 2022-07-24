@@ -66,7 +66,7 @@ int main()
   // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
-
+  // glfwSwapInterval(1);
   while (!glfwWindowShouldClose(window)) {
     application.runFrame();
   }

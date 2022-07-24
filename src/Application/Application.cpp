@@ -194,6 +194,8 @@ void Application::ImGuiFrame()
     DISPLAY(inputState.windowFocused);
     DISPLAY(inputState.outOfWindow);
     DISPLAY(deltaTime);
+    int framesPerSecond = 1.0f / deltaTime;
+    DISPLAY(framesPerSecond);
     DISPLAY(atoms.size());
     DISPLAY("Atom Positions");
     for (Atom& atom : atoms) {

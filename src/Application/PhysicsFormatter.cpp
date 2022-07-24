@@ -3,7 +3,10 @@
 #include <Renderer/Renderer.h>
 #include <glm/ext/scalar_constants.hpp>
 #include <glm/geometric.hpp>
+#include <glm/gtc/random.hpp>
+#include <glm/gtx/polar_coordinates.hpp>
 #include <glm/gtx/string_cast.hpp>
+#include <glm/trigonometric.hpp>
 
 PhysicsFormatter::PhysicsFormatter(std::list<Atom>& atoms,
                                    std::list<Bond>& bonds)
@@ -27,6 +30,8 @@ void PhysicsFormatter::twoBonds(Atom& centralAtom)
                                       glm::normalize(displacementB)) *
                        bondLength;
 
+  if (glm::any(glm::isnan(bisector)))
+    return;
   float deg90 = glm::pi<float>() / 2.0f;
   glm::vec2 newPos1 = centralPos + glm::rotate(bisector, deg90);
   glm::vec2 newPos2 = centralPos + glm::rotate(bisector, -deg90);
@@ -42,13 +47,84 @@ void PhysicsFormatter::twoBonds(Atom& centralAtom)
   glm::vec2 deltaB = newPosB - posB;
   atomA.force += deltaA;
   atomB.force += deltaB;
+  centralAtom.force -= deltaA + deltaB;
   // drawableAtoms.push_back({ newPosA, atomA.color, atomA.symbol });
   // drawableAtoms.push_back({ newPosB, atomB.color, atomB.symbol });
 }
 
+float func(float theta,
+           const glm::vec2& v1,
+           const glm::vec2& v2,
+           const glm::vec2& v3)
+{
+  float deg120 = glm::pi<float>() * 2.0f / 3.0f;
+  glm::vec2 offset1(glm::cos(theta + 0 * deg120), glm::sin(theta + 0 * deg120));
+  glm::vec2 offset2(glm::cos(theta + 1 * deg120), glm::sin(theta + 1 * deg120));
+  glm::vec2 offset3(glm::cos(theta + 2 * deg120), glm::sin(theta + 2 * deg120));
+
+  float d1 = glm::distance(offset1, v1);
+  float d2 = glm::distance(offset1, v2);
+  float d3 = glm::distance(offset1, v3);
+
+  return d1 + d2 + d3;
+}
+
+float optimiseTheta(const glm::vec2& v1,
+                    const glm::vec2& v2,
+                    const glm::vec2& v3)
+{
+  float minVal = INFINITY;
+  float minTheta = 0.0f;
+  for (float theta = 0.0f; theta < 10.0f; theta += 0.008f) {
+    float val = func(theta, v1, v2, v3);
+    if (val < minVal) {
+      minVal = val;
+      minTheta = theta;
+    }
+  }
+  return minTheta;
+}
+
 void PhysicsFormatter::threeBonds(Atom& centralAtom)
 {
-  (void)centralAtom;
+  glm::vec2 centralPos = centralAtom.pos;
+
+  Atom& atomA = centralAtom.bonds[0]->other(centralAtom);
+  glm::vec2 posA = atomA.pos;
+  glm::vec2 displacementA = posA - centralPos;
+
+  Atom& atomB = centralAtom.bonds[1]->other(centralAtom);
+  glm::vec2 posB = atomB.pos;
+  glm::vec2 displacementB = posB - centralPos;
+
+  Atom& atomC = centralAtom.bonds[2]->other(centralAtom);
+  glm::vec2 posC = atomC.pos;
+  glm::vec2 displacementC = posC - centralPos;
+
+  float theta = optimiseTheta(glm::normalize(displacementA),
+                              glm::normalize(displacementB),
+                              glm::normalize(displacementC));
+  float deg120 = glm::pi<float>() * 2.0f / 3.0f;
+  glm::vec2 offset1(glm::cos(theta + 0 * deg120), glm::sin(theta + 0 * deg120));
+  glm::vec2 offset2(glm::cos(theta + 1 * deg120), glm::sin(theta + 1 * deg120));
+  glm::vec2 offset3(glm::cos(theta + 2 * deg120), glm::sin(theta + 2 * deg120));
+
+  glm::vec2 newPosA = centralPos + bondLength * offset1;
+  glm::vec2 newPosB = centralPos + bondLength * offset2;
+  glm::vec2 newPosC = centralPos + bondLength * offset3;
+
+  glm::vec2 deltaA = newPosA - posA;
+  glm::vec2 deltaB = newPosB - posB;
+  glm::vec2 deltaC = newPosC - posC;
+  atomA.force += deltaA;
+  atomB.force += deltaB;
+  atomC.force += deltaC;
+  centralAtom.force -= deltaA + deltaB + deltaC;
+
+  drawableAtoms.clear();
+  drawableAtoms.push_back({ newPosA, atomA.color, atomA.symbol });
+  drawableAtoms.push_back({ newPosB, atomB.color, atomB.symbol });
+  drawableAtoms.push_back({ newPosC, atomC.color, atomC.symbol });
 }
 
 void PhysicsFormatter::fourBonds(Atom& centralAtom)
@@ -117,5 +193,36 @@ void PhysicsFormatter::exertForce()
     // atom2.force += forceOnBond2 / 2.0f;
     //}
     //}
+  }
+  optimiseForce();
+}
+
+void PhysicsFormatter::optimiseForce()
+{
+  if (atoms.empty())
+    return;
+  glm::vec2 minForce(atoms.begin()->force);
+  glm::vec2 maxForce(atoms.begin()->force);
+  for (Atom& atom : atoms) {
+    minForce = glm::min(minForce, atom.force);
+    maxForce = glm::max(maxForce, atom.force);
+  }
+  if (minForce.x > 0) {
+    for (Atom& atom : atoms) {
+      atom.force.x -= minForce.x;
+    }
+  } else if (maxForce.x < 0) {
+    for (Atom& atom : atoms) {
+      atom.force.x -= maxForce.x;
+    }
+  }
+  if (minForce.y > 0) {
+    for (Atom& atom : atoms) {
+      atom.force.y -= minForce.y;
+    }
+  } else if (maxForce.y < 0) {
+    for (Atom& atom : atoms) {
+      atom.force.y -= maxForce.y;
+    }
   }
 }
