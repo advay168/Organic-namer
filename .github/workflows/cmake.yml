@@ -18,6 +18,10 @@ jobs:
     - uses: actions/checkout@v1
       with:
         submodules: true
+    
+    - name: Update libs
+      run: sudo apt-get update
+    
     - name: Install xorg
       run: sudo apt-get install xorg-dev
     
