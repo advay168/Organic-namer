@@ -48,94 +48,57 @@ void PhysicsFormatter::twoBonds(Atom& centralAtom)
   atomA.force += deltaA;
   atomB.force += deltaB;
   centralAtom.force -= deltaA + deltaB;
-  // drawableAtoms.push_back({ newPosA, atomA.color, atomA.symbol });
-  // drawableAtoms.push_back({ newPosB, atomB.color, atomB.symbol });
 }
 
-float func(float theta,
-           const glm::vec2& v1,
-           const glm::vec2& v2,
-           const glm::vec2& v3)
+std::vector<glm::vec2> getIdealPositions(float theta, uint8_t n)
 {
-  float deg120 = glm::pi<float>() * 2.0f / 3.0f;
-  glm::vec2 offset1(glm::cos(theta + 0 * deg120), glm::sin(theta + 0 * deg120));
-  glm::vec2 offset2(glm::cos(theta + 1 * deg120), glm::sin(theta + 1 * deg120));
-  glm::vec2 offset3(glm::cos(theta + 2 * deg120), glm::sin(theta + 2 * deg120));
-
-  float d1 = glm::distance(offset1, v1);
-  float d2 = glm::distance(offset1, v2);
-  float d3 = glm::distance(offset1, v3);
-
-  return d1 + d2 + d3;
+  std::vector<glm::vec2> positions;
+  float offset = 2.0f * glm::pi<float>() / n;
+  for (uint8_t i = 0; i < n; i++) {
+    positions.push_back(
+      { glm::cos(theta + i * offset), glm::sin(theta + i * offset) });
+  }
+  return positions;
 }
 
-float optimiseTheta(const glm::vec2& v1,
-                    const glm::vec2& v2,
-                    const glm::vec2& v3)
+struct Result
+{
+  std::vector<glm::vec2> newPositions;
+  float difference;
+};
+
+Result getDifference(float theta, const std::vector<glm::vec2>& positions)
+{
+  // TODO: use permutations
+  std::vector<glm::vec2> idealPositions =
+    getIdealPositions(theta, positions.size());
+  float difference = 0;
+  for (uint8_t i = 0; i < positions.size(); i++) {
+    difference += glm::distance(idealPositions[i], positions[i]);
+  }
+  return { idealPositions, difference };
+}
+
+std::vector<glm::vec2> findOptimumArrangement(
+  const std::vector<glm::vec2>& positions)
 {
   float minVal = INFINITY;
-  float minTheta = 0.0f;
+  std::vector<glm::vec2> minPositions;
   for (float theta = 0.0f; theta < 10.0f; theta += 0.008f) {
-    float val = func(theta, v1, v2, v3);
+    auto [newPositions, val] = getDifference(theta, positions);
     if (val < minVal) {
       minVal = val;
-      minTheta = theta;
+      minPositions = positions;
     }
   }
-  return minTheta;
-}
-
-void PhysicsFormatter::threeBonds(Atom& centralAtom)
-{
-  glm::vec2 centralPos = centralAtom.pos;
-
-  Atom& atomA = centralAtom.bonds[0]->other(centralAtom);
-  glm::vec2 posA = atomA.pos;
-  glm::vec2 displacementA = posA - centralPos;
-
-  Atom& atomB = centralAtom.bonds[1]->other(centralAtom);
-  glm::vec2 posB = atomB.pos;
-  glm::vec2 displacementB = posB - centralPos;
-
-  Atom& atomC = centralAtom.bonds[2]->other(centralAtom);
-  glm::vec2 posC = atomC.pos;
-  glm::vec2 displacementC = posC - centralPos;
-
-  float theta = optimiseTheta(glm::normalize(displacementA),
-                              glm::normalize(displacementB),
-                              glm::normalize(displacementC));
-  float deg120 = glm::pi<float>() * 2.0f / 3.0f;
-  glm::vec2 offset1(glm::cos(theta + 0 * deg120), glm::sin(theta + 0 * deg120));
-  glm::vec2 offset2(glm::cos(theta + 1 * deg120), glm::sin(theta + 1 * deg120));
-  glm::vec2 offset3(glm::cos(theta + 2 * deg120), glm::sin(theta + 2 * deg120));
-
-  glm::vec2 newPosA = centralPos + bondLength * offset1;
-  glm::vec2 newPosB = centralPos + bondLength * offset2;
-  glm::vec2 newPosC = centralPos + bondLength * offset3;
-
-  glm::vec2 deltaA = newPosA - posA;
-  glm::vec2 deltaB = newPosB - posB;
-  glm::vec2 deltaC = newPosC - posC;
-  atomA.force += deltaA;
-  atomB.force += deltaB;
-  atomC.force += deltaC;
-  centralAtom.force -= deltaA + deltaB + deltaC;
-
-  //drawableAtoms.clear();
-  //drawableAtoms.push_back({ newPosA, atomA.color, atomA.symbol });
-  //drawableAtoms.push_back({ newPosB, atomB.color, atomB.symbol });
-  //drawableAtoms.push_back({ newPosC, atomC.color, atomC.symbol });
-}
-
-void PhysicsFormatter::fourBonds(Atom& centralAtom)
-{
-  (void)centralAtom;
+  return minPositions;
 }
 
 void PhysicsFormatter::draw()
 {
   for (auto& [pos, color, symbol] : drawableAtoms)
     Renderer::TextCircle(pos, 40.0f, color, symbol, 1.0f, glm::vec3(1.0f));
+  drawableAtoms.clear();
 }
 
 void PhysicsFormatter::applyForce()
@@ -156,43 +119,28 @@ void PhysicsFormatter::exertForce()
     atom.force *= 0.0f;
   }
   for (Atom& centralAtom : atoms) {
-    int numBonds = centralAtom.bonds.size();
-    switch (numBonds) {
-      case 2:
-        twoBonds(centralAtom);
-        break;
-      case 3:
-        threeBonds(centralAtom);
-        break;
-      case 4:
-        fourBonds(centralAtom);
-        break;
-      case 1:
-      default:
-        break;
+    if(centralAtom.bonds.size() <= 1)
+      continue;
+    glm::vec2 centralPos = centralAtom.pos;
+    std::vector<glm::vec2> positions;
+    std::vector<Atom*> atoms;
+    for (Bond* bond : centralAtom.bonds) {
+      Atom& atom = bond->other(centralAtom);
+      if (&atom != &centralAtom) {
+        positions.push_back(glm::normalize(atom.pos - centralPos));
+        atoms.push_back(&atom);
+      }
     }
-    // for (Bond* bond1 : centralAtom.bonds) {
-    // Atom& atom1 = bond1->other(centralAtom);
-    // glm::vec2 bond1Dir = glm::normalize(atom1.pos - centralAtom.pos);
-    // glm::vec2 hopefulPosition1 = centralAtom.pos + bond1Dir * 30.0f;
-    // glm::vec2 bond1Center = (centralAtom.pos + hopefulPosition1) / 2.0f;
-    // for (Bond* bond2 : centralAtom.bonds) {
-    // if (bond1 == bond2)
-    // continue;
-    // Atom& atom2 = bond2->other(centralAtom);
-    // glm::vec2 bond2Dir = glm::normalize(atom2.pos - centralAtom.pos);
-    // glm::vec2 hopefulPosition2 = centralAtom.pos + bond2Dir * 30.0f;
-    // glm::vec2 bond2Center = (centralAtom.pos + hopefulPosition2) / 2.0f;
-    // glm::vec2 diff = bond2Center - bond1Center;
-    // float dist = diff.length();
-    // float forceMag = 1.0f / (dist * dist);
-    // glm::vec2 dir = -diff / dist;
-    // glm::vec2 forceOnBond1 = forceMag * dir;
-    // glm::vec2 forceOnBond2 = -forceOnBond1;
-    // atom1.force += forceOnBond1 / 2.0f;
-    // atom2.force += forceOnBond2 / 2.0f;
-    //}
-    //}
+    std::vector<glm::vec2> newOffsets = findOptimumArrangement(positions);
+    for (uint8_t i = 0; i < newOffsets.size(); i++) {
+      Atom& atom = *atoms[i];
+      glm::vec2 newOffset = newOffsets[i];
+      glm::vec2 newPos = bondLength * newOffset + centralPos;
+      //drawableAtoms.push_back({newPos, atom.color, atom.symbol});
+      glm::vec2 delta = newPos - atom.pos;
+      atom.force += delta;
+      centralAtom.force -= delta;
+    }
   }
   optimiseForce();
 }
