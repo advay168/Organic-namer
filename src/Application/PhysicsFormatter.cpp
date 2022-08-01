@@ -88,7 +88,7 @@ std::vector<glm::vec2> findOptimumArrangement(
     auto [newPositions, val] = getDifference(theta, positions);
     if (val < minVal) {
       minVal = val;
-      minPositions = positions;
+      minPositions = newPositions;
     }
   }
   return minPositions;
