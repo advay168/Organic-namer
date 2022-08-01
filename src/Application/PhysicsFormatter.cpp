@@ -121,10 +121,10 @@ void PhysicsFormatter::threeBonds(Atom& centralAtom)
   atomC.force += deltaC;
   centralAtom.force -= deltaA + deltaB + deltaC;
 
-  drawableAtoms.clear();
-  drawableAtoms.push_back({ newPosA, atomA.color, atomA.symbol });
-  drawableAtoms.push_back({ newPosB, atomB.color, atomB.symbol });
-  drawableAtoms.push_back({ newPosC, atomC.color, atomC.symbol });
+  //drawableAtoms.clear();
+  //drawableAtoms.push_back({ newPosA, atomA.color, atomA.symbol });
+  //drawableAtoms.push_back({ newPosB, atomB.color, atomB.symbol });
+  //drawableAtoms.push_back({ newPosC, atomC.color, atomC.symbol });
 }
 
 void PhysicsFormatter::fourBonds(Atom& centralAtom)
