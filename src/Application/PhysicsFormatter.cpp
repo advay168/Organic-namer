@@ -1,11 +1,5 @@
 #include "PhysicsFormatter.h"
-#include "glm/gtx/rotate_vector.hpp"
 #include <Renderer/Renderer.h>
-#include <glm/ext/scalar_constants.hpp>
-#include <glm/geometric.hpp>
-#include <glm/gtc/random.hpp>
-#include <glm/gtx/polar_coordinates.hpp>
-#include <glm/gtx/string_cast.hpp>
 #include <glm/trigonometric.hpp>
 
 PhysicsFormatter::PhysicsFormatter(std::list<Atom>& atoms,
@@ -13,41 +7,6 @@ PhysicsFormatter::PhysicsFormatter(std::list<Atom>& atoms,
   : atoms(atoms)
   , bonds(bonds)
 {
-}
-
-void PhysicsFormatter::twoBonds(Atom& centralAtom)
-{
-  glm::vec2 centralPos = centralAtom.pos;
-  Atom& atomA = centralAtom.bonds[0]->other(centralAtom);
-  glm::vec2 posA = atomA.pos;
-  glm::vec2 displacementA = posA - centralPos;
-
-  Atom& atomB = centralAtom.bonds[1]->other(centralAtom);
-  glm::vec2 posB = atomB.pos;
-  glm::vec2 displacementB = posB - centralPos;
-
-  glm::vec2 bisector = glm::normalize(glm::normalize(displacementA) +
-                                      glm::normalize(displacementB)) *
-                       bondLength;
-
-  if (glm::any(glm::isnan(bisector)))
-    return;
-  float deg90 = glm::pi<float>() / 2.0f;
-  glm::vec2 newPos1 = centralPos + glm::rotate(bisector, deg90);
-  glm::vec2 newPos2 = centralPos + glm::rotate(bisector, -deg90);
-  glm::vec2 newPosA, newPosB;
-  if (glm::distance(newPos1, posA) < glm::distance(newPos2, posA)) {
-    newPosA = newPos1;
-    newPosB = newPos2;
-  } else {
-    newPosA = newPos2;
-    newPosB = newPos1;
-  }
-  glm::vec2 deltaA = newPosA - posA;
-  glm::vec2 deltaB = newPosB - posB;
-  atomA.force += deltaA;
-  atomB.force += deltaB;
-  centralAtom.force -= deltaA + deltaB;
 }
 
 std::vector<glm::vec2> getIdealPositions(float theta, uint8_t n)
@@ -74,7 +33,8 @@ Result getDifference(float theta, const std::vector<glm::vec2>& positions)
     getIdealPositions(theta, positions.size());
   float difference = 0;
   for (uint8_t i = 0; i < positions.size(); i++) {
-    difference += glm::distance(idealPositions[i], positions[i]);
+    float dist = glm::distance(idealPositions[i], positions[i]);
+    difference += dist * dist;
   }
   return { idealPositions, difference };
 }
@@ -84,7 +44,7 @@ std::vector<glm::vec2> findOptimumArrangement(
 {
   float minVal = INFINITY;
   std::vector<glm::vec2> minPositions;
-  for (float theta = 0.0f; theta < 10.0f; theta += 0.008f) {
+  for (float theta = 0.0f; theta < 7.0f; theta += 0.005f) {
     auto [newPositions, val] = getDifference(theta, positions);
     if (val < minVal) {
       minVal = val;
@@ -92,13 +52,6 @@ std::vector<glm::vec2> findOptimumArrangement(
     }
   }
   return minPositions;
-}
-
-void PhysicsFormatter::draw()
-{
-  for (auto& [pos, color, symbol] : drawableAtoms)
-    Renderer::TextCircle(pos, 40.0f, color, symbol, 1.0f, glm::vec3(1.0f));
-  drawableAtoms.clear();
 }
 
 void PhysicsFormatter::applyForce()
@@ -115,12 +68,11 @@ void PhysicsFormatter::applyForce()
 
 void PhysicsFormatter::exertForce()
 {
+  // Set all forces to 0
   for (Atom& atom : atoms) {
     atom.force *= 0.0f;
   }
   for (Atom& centralAtom : atoms) {
-    if(centralAtom.bonds.size() <= 1)
-      continue;
     glm::vec2 centralPos = centralAtom.pos;
     std::vector<glm::vec2> positions;
     std::vector<Atom*> atoms;
@@ -136,7 +88,6 @@ void PhysicsFormatter::exertForce()
       Atom& atom = *atoms[i];
       glm::vec2 newOffset = newOffsets[i];
       glm::vec2 newPos = bondLength * newOffset + centralPos;
-      //drawableAtoms.push_back({newPos, atom.color, atom.symbol});
       glm::vec2 delta = newPos - atom.pos;
       atom.force += delta;
       centralAtom.force -= delta;

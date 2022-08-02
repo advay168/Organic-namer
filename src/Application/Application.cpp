@@ -162,9 +162,6 @@ void Application::drawFrame()
     bond.draw();
 
   selectionBox.draw();
-  physicsFormatter.draw();
-  // auto [a, b] = calculateAtomsBoundingBox();
-  // Renderer::Rectangle(a, b);
 }
 
 void Application::ImGuiFrame()
