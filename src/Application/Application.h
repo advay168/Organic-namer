@@ -5,6 +5,7 @@
 
 #include "Atom.h"
 #include "Bond.h"
+#include "Scene.h"
 #include "Camera.h"
 #include "InputState.h"
 #include "PhysicsFormatter.h"
@@ -54,7 +55,9 @@ private:
 
   InputState inputState;
 
-  std::list<Atom> atoms;
+  Scene currentScene;
+  static constexpr const char * sceneFileName = "scene.customformat"; 
+
   Atom* selectedAtom = nullptr;
   bool selectedAtomFollowMouse = false;
 
@@ -62,7 +65,6 @@ private:
   int selectedTmpAtom = -1;
   std::unique_ptr<Atom> tmpAtom;
 
-  std::list<Bond> bonds;
 
   SelectionBox selectionBox;
 

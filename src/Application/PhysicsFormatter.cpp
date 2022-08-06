@@ -2,10 +2,8 @@
 #include <Renderer/Renderer.h>
 #include <glm/trigonometric.hpp>
 
-PhysicsFormatter::PhysicsFormatter(std::list<Atom>& atoms,
-                                   std::list<Bond>& bonds)
-  : atoms(atoms)
-  , bonds(bonds)
+PhysicsFormatter::PhysicsFormatter(Scene& scene)
+  : scene(scene)
 {
 }
 
@@ -26,11 +24,10 @@ struct Result
   float difference;
 };
 
-Result getDifference(float theta, const std::vector<glm::vec2>& positions)
+Result getDifference(const std::vector<glm::vec2>& idealPositions,
+                     const std::vector<glm::vec2>& positions)
 {
   // TODO: use permutations
-  std::vector<glm::vec2> idealPositions =
-    getIdealPositions(theta, positions.size());
   float difference = 0;
   for (uint8_t i = 0; i < positions.size(); i++) {
     float dist = glm::distance(idealPositions[i], positions[i]);
@@ -45,7 +42,10 @@ std::vector<glm::vec2> findOptimumArrangement(
   float minVal = INFINITY;
   std::vector<glm::vec2> minPositions;
   for (float theta = 0.0f; theta < 7.0f; theta += 0.005f) {
-    auto [newPositions, val] = getDifference(theta, positions);
+    std::vector<glm::vec2> idealPositions =
+      getIdealPositions(theta, positions.size());
+    std::vector<std::vector<glm::vec2>> permutations;
+    auto [newPositions, val] = getDifference(idealPositions, positions);
     if (val < minVal) {
       minVal = val;
       minPositions = newPositions;
@@ -57,7 +57,7 @@ std::vector<glm::vec2> findOptimumArrangement(
 void PhysicsFormatter::applyForce()
 {
   exertForce();
-  for (Atom& atom : atoms) {
+  for (Atom& atom : scene.atoms) {
     if (glm::length(atom.force) > 0) {
       glm::vec2 forceDir = glm::normalize(atom.force);
       float forceMag = glm::length(atom.force);
@@ -69,10 +69,10 @@ void PhysicsFormatter::applyForce()
 void PhysicsFormatter::exertForce()
 {
   // Set all forces to 0
-  for (Atom& atom : atoms) {
+  for (Atom& atom : scene.atoms) {
     atom.force *= 0.0f;
   }
-  for (Atom& centralAtom : atoms) {
+  for (Atom& centralAtom : scene.atoms) {
     glm::vec2 centralPos = centralAtom.pos;
     std::vector<glm::vec2> positions;
     std::vector<Atom*> atoms;
@@ -98,29 +98,29 @@ void PhysicsFormatter::exertForce()
 
 void PhysicsFormatter::optimiseForce()
 {
-  if (atoms.empty())
+  if (scene.atoms.empty())
     return;
-  glm::vec2 minForce(atoms.begin()->force);
-  glm::vec2 maxForce(atoms.begin()->force);
-  for (Atom& atom : atoms) {
+  glm::vec2 minForce(scene.atoms.begin()->force);
+  glm::vec2 maxForce(scene.atoms.begin()->force);
+  for (Atom& atom : scene.atoms) {
     minForce = glm::min(minForce, atom.force);
     maxForce = glm::max(maxForce, atom.force);
   }
   if (minForce.x > 0) {
-    for (Atom& atom : atoms) {
+    for (Atom& atom : scene.atoms) {
       atom.force.x -= minForce.x;
     }
   } else if (maxForce.x < 0) {
-    for (Atom& atom : atoms) {
+    for (Atom& atom : scene.atoms) {
       atom.force.x -= maxForce.x;
     }
   }
   if (minForce.y > 0) {
-    for (Atom& atom : atoms) {
+    for (Atom& atom : scene.atoms) {
       atom.force.y -= minForce.y;
     }
   } else if (maxForce.y < 0) {
-    for (Atom& atom : atoms) {
+    for (Atom& atom : scene.atoms) {
       atom.force.y -= maxForce.y;
     }
   }

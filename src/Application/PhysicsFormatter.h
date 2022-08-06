@@ -1,13 +1,12 @@
 #pragma once
 #include "Common.h"
 
-#include "Atom.h"
-#include "Bond.h"
+#include "Scene.h"
 
 class PhysicsFormatter
 {
 public:
-  PhysicsFormatter(std::list<Atom>& atoms, std::list<Bond>& bonds);
+  PhysicsFormatter(Scene& scene);
 
   void exertForce();
   void applyForce();
@@ -18,7 +17,6 @@ private:
   void optimiseForce();
 
 private:
-  std::list<Atom>& atoms;
-  std::list<Bond>& bonds;
+  Scene& scene;
   static constexpr float bondLength = 340.0f;
 };

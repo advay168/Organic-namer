@@ -1,5 +1,7 @@
 #include "Application.h"
 
+#include <fstream>
+
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
@@ -13,7 +15,7 @@ Application::Application(GLFWwindow* window)
   : window(window)
   , camera(inputState)
   , selectionBox(inputState)
-  , physicsFormatter(atoms, bonds)
+  , physicsFormatter(currentScene)
 {
   Renderer::Init();
 
@@ -101,7 +103,8 @@ void Application::handleAtomsInput()
     return;
 
   if (tmpAtom) {
-    atoms.push_back(*tmpAtom); // not same atom as vector creates copy
+    currentScene.atoms.push_back(
+      *tmpAtom); // not same atom as vector creates copy
     return;
   }
 
@@ -132,7 +135,7 @@ void Application::handleAtomsInput()
 
 void Application::selectAtomWithin(const glm::vec2& start, const glm::vec2& end)
 {
-  for (Atom& atom : atoms) {
+  for (Atom& atom : currentScene.atoms) {
     if (atom.isIntersecting(start, end)) {
       selectedAtom = &atom;
       return;
@@ -153,12 +156,12 @@ void Application::updateFrame()
 
 void Application::drawFrame()
 {
-  for (Atom& atom : atoms)
+  for (Atom& atom : currentScene.atoms)
     atom.draw(selectedAtom == &atom);
   if (tmpAtom)
     tmpAtom->draw(false);
 
-  for (Bond& bond : bonds)
+  for (Bond& bond : currentScene.bonds)
     bond.draw();
 
   selectionBox.draw();
@@ -187,21 +190,31 @@ void Application::ImGuiFrame()
 
   {
     ImGui::Begin("Controls");
-    ImGui::Text("The UI");
     DISPLAY(inputState.windowFocused);
     DISPLAY(inputState.outOfWindow);
     DISPLAY(deltaTime);
     int framesPerSecond = 1.0f / deltaTime;
     DISPLAY(framesPerSecond);
-    DISPLAY(atoms.size());
+    DISPLAY(currentScene.atoms.size());
     DISPLAY("Atom Positions");
-    for (Atom& atom : atoms) {
+    for (Atom& atom : currentScene.atoms) {
       DISPLAY(atom.pos.x);
       DISPLAY(atom.pos.y);
     }
     camera.debugDisplay();
 
     ImGui::Separator();
+
+    if (ImGui::Button("Save scene")) {
+      std::ofstream file(sceneFileName);
+      currentScene.serialize(file);
+    }
+
+    if (ImGui::Button("Load scene")) {
+      std::ifstream file(sceneFileName);
+      currentScene.deserialise(file);
+    }
+
     displayElements();
 
     if (ImGui::Button("Bring all atoms into view")) {
@@ -217,7 +230,7 @@ void Application::ImGuiFrame()
     }
 
     if (ImGui::Button("Randomise Positions")) {
-      for (Atom& atom : atoms) {
+      for (Atom& atom : currentScene.atoms) {
         atom.pos = glm::linearRand(glm::vec2(0, 0), glm::vec2(WIDTH, HEIGHT));
       }
     }
@@ -306,13 +319,13 @@ void Application::displayDeletionOptions()
 void Application::createBond(Atom* a, Atom* b)
 {
   Bond tmpBond(a, b);
-  for (Bond& bond : bonds) {
+  for (Bond& bond : currentScene.bonds) {
     if (bond == tmpBond) {
       ++bond.count;
       return;
     }
   }
-  bonds.push_back(tmpBond);
+  currentScene.bonds.push_back(tmpBond);
 }
 
 void Application::deleteAtom(Atom* atomToDel)
@@ -320,40 +333,41 @@ void Application::deleteAtom(Atom* atomToDel)
   while (atomToDel->bonds.size()) {
     deleteBond(atomToDel->bonds[0]);
   }
-  atoms.erase(std::find_if(atoms.begin(), atoms.end(), [atomToDel](Atom& a) {
-    return &a == atomToDel;
-  }));
+  currentScene.atoms.erase(std::find_if(
+    currentScene.atoms.begin(), currentScene.atoms.end(), [atomToDel](Atom& a) {
+      return &a == atomToDel;
+    }));
   if (selectedAtom == atomToDel)
     selectedAtom = nullptr;
 }
 
 void Application::deleteBond(Bond* bondToDel)
 {
-  auto it = std::find_if(bonds.begin(), bonds.end(), [bondToDel](Bond& x) {
-    return &x == bondToDel;
-  });
-  bonds.erase(it);
+  auto it = std::find_if(currentScene.bonds.begin(),
+                         currentScene.bonds.end(),
+                         [bondToDel](Bond& x) { return &x == bondToDel; });
+  currentScene.bonds.erase(it);
 }
 
 std::pair<glm::vec2, glm::vec2> Application::calculateAtomsBoundingBox()
 {
-  if (atoms.empty()) {
+  if (currentScene.atoms.empty()) {
     return { { 0.0f, HEIGHT }, { WIDTH, 0.0f } };
   }
   glm::vec2 topRight(0.0f, 0.0f);
   glm::vec2 bottomLeft(WIDTH, HEIGHT);
-  for (Atom& atom : atoms) {
+  for (Atom& atom : currentScene.atoms) {
     bottomLeft = glm::min(bottomLeft, atom.pos);
     topRight = glm::max(topRight, atom.pos);
   }
-  bottomLeft -= atoms.begin()->radius;
-  topRight += atoms.begin()->radius;
+  bottomLeft -= currentScene.atoms.begin()->radius;
+  topRight += currentScene.atoms.begin()->radius;
   return { { bottomLeft.x, topRight.y }, { topRight.x, bottomLeft.y } };
 }
 
 Atom* Application::findHoveredAtom()
 {
-  for (Atom& atom : atoms) {
+  for (Atom& atom : currentScene.atoms) {
     if (atom.isIntersecting(inputState.mousePos)) {
       return &atom;
     }
