@@ -196,11 +196,6 @@ void Application::ImGuiFrame()
     int framesPerSecond = 1.0f / deltaTime;
     DISPLAY(framesPerSecond);
     DISPLAY(currentScene.atoms.size());
-    DISPLAY("Atom Positions");
-    for (Atom& atom : currentScene.atoms) {
-      DISPLAY(atom.pos.x);
-      DISPLAY(atom.pos.y);
-    }
     camera.debugDisplay();
 
     ImGui::Separator();
