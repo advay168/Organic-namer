@@ -5,9 +5,25 @@
 PhysicsFormatter::PhysicsFormatter(Scene& scene)
   : scene(scene)
 {
+  auto comparer = [](const glm::vec2& a, const glm::vec2& b) {
+    // return a < b
+    return glm::acos(a.x) < glm::acos(b.x);
+  };
   for (uint8_t n = 0; n < MAX_BONDS; n++) {
     for (float theta = 0.0f; theta < TWO_PI; theta += 0.005f) {
-      precomputedIdealPositions[n].push_back(calculateIdealPositions(theta, n));
+      auto temp = calculateIdealPositions(theta, n);
+#if (false)
+      std::sort(temp.begin(), temp.end(), comparer);
+      do {
+        precomputedIdealPositions[n].push_back(temp);
+      } while (std::next_permutation(
+        temp.begin() + 1,
+        temp.end(),
+        comparer)); // Rotation takes care of first element
+#else
+      (void)comparer;
+      precomputedIdealPositions[n].push_back(temp);
+#endif
     }
   }
 }

@@ -6,10 +6,10 @@
 
 #include "Atom.h"
 #include "Bond.h"
-#include "Scene.h"
 #include "Camera.h"
 #include "InputState.h"
 #include "PhysicsFormatter.h"
+#include "Scene.h"
 #include "SelectionBox.h"
 
 class Application
@@ -64,7 +64,6 @@ private:
   std::vector<std::pair<std::string, std::string>> elementsList;
   int selectedTmpAtom = -1;
   std::unique_ptr<Atom> tmpAtom;
-
 
   SelectionBox selectionBox;
 

@@ -2,7 +2,6 @@
 #include "Common.h"
 #include "Config.h"
 
-
 #include "Scene.h"
 
 class PhysicsFormatter
@@ -21,10 +20,11 @@ private:
   PositionsArray_t calculateIdealPositions(float theta, uint8_t n);
 
   float calculateDifference(const PositionsArray_t& idealPositions,
-                       const PositionsArray_t& positions, uint8_t n);
+                            const PositionsArray_t& positions,
+                            uint8_t n);
 
-  PositionsArray_t findOptimumArrangement(
-    const PositionsArray_t& positions, uint8_t n);
+  PositionsArray_t findOptimumArrangement(const PositionsArray_t& positions,
+                                          uint8_t n);
 
   void optimiseForce();
 

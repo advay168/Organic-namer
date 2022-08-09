@@ -25,7 +25,7 @@ void Scene::deserialize(std::istream& stream)
     indexedAtoms.push_back(&atoms.back());
   }
   if (stream.get() != '$' || stream.get() != '\n') {
-      throw std::runtime_error("Malformed input to scene deserializer");
+    throw std::runtime_error("Malformed input to scene deserializer");
   }
 
   while (stream.peek() != std::char_traits<char>::eof()) {
