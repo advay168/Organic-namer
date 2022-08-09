@@ -9,6 +9,9 @@ Bond::Bond(Atom* a, Atom* b)
   : a(a)
   , b(b)
 {
+  if(a->bonds.size() >= MAX_BONDS || b->bonds.size() >= MAX_BONDS){
+    throw std::runtime_error("Tried adding too many bonds");
+  }
   a->bonds.push_back(this);
   b->bonds.push_back(this);
 }
@@ -55,7 +58,7 @@ float Bond::length()
 void Bond::draw()
 {
   glm::vec2 line(b->pos - a->pos);
-  glm::vec2 offset(glm::normalize(glm::rotate(line, glm::pi<float>() / 2.0f)) *
+  glm::vec2 offset(glm::normalize(glm::rotate(line, float(PI) / 2.0f)) *
                    5.0f);
   switch (count) {
     case 1: {

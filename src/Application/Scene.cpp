@@ -1,6 +1,6 @@
 #include "Scene.h"
 
-void Scene::deserialise(std::istream& stream)
+void Scene::deserialize(std::istream& stream)
 {
   std::vector<Atom*> indexedAtoms;
   while (stream.peek() != '$') {
@@ -16,8 +16,7 @@ void Scene::deserialise(std::istream& stream)
     stream >> cb;
 
     if (stream.get() != '\n') {
-      std::cout << "Malformed input" << std::endl;
-      abort();
+      throw std::runtime_error("Malformed input to scene deserializer");
     }
 
     Atom a(name, symbol, { cr, cg, cb });
@@ -26,8 +25,7 @@ void Scene::deserialise(std::istream& stream)
     indexedAtoms.push_back(&atoms.back());
   }
   if (stream.get() != '$' || stream.get() != '\n') {
-    std::cout << "Malformed input" << std::endl;
-    abort();
+      throw std::runtime_error("Malformed input to scene deserializer");
   }
 
   while (stream.peek() != std::char_traits<char>::eof()) {
@@ -41,8 +39,7 @@ void Scene::deserialise(std::istream& stream)
     bonds.push_back(b);
 
     if (stream.get() != '\n') {
-      std::cout << "Malformed input" << std::endl;
-      abort();
+      throw std::runtime_error("Malformed input to scene deserializer");
     }
   }
 }

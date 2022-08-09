@@ -31,37 +31,37 @@ void Camera::Home()
 
 void Camera::Forward(float deltaTime)
 {
-  cameraPos.y += deltaTime * movementSpeed;
+  cameraPos.y += deltaTime * MOVEMENT_SPEED;
   recalculateMatrixes();
 }
 
 void Camera::Backward(float deltaTime)
 {
-  cameraPos.y -= deltaTime * movementSpeed;
+  cameraPos.y -= deltaTime * MOVEMENT_SPEED;
   recalculateMatrixes();
 }
 
 void Camera::Right(float deltaTime)
 {
-  cameraPos.x += deltaTime * movementSpeed;
+  cameraPos.x += deltaTime * MOVEMENT_SPEED;
   recalculateMatrixes();
 }
 
 void Camera::Left(float deltaTime)
 {
-  cameraPos.x -= deltaTime * movementSpeed;
+  cameraPos.x -= deltaTime * MOVEMENT_SPEED;
   recalculateMatrixes();
 }
 
 void Camera::ZoomIn()
 {
-  zoom += zoomSpeed;
+  zoom += ZOOM_SPEED;
   recalculateMatrixes();
 }
 
 void Camera::ZoomOut()
 {
-  zoom -= zoomSpeed;
+  zoom -= ZOOM_SPEED;
   recalculateMatrixes();
 }
 

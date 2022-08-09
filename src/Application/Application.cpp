@@ -1,6 +1,7 @@
 #include "Application.h"
 
 #include <fstream>
+#include <random>
 
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
@@ -10,7 +11,7 @@
 #include "glm/gtc/random.hpp"
 #include "glm/gtx/transform.hpp"
 
-int offset = rand();
+std::default_random_engine rng;
 Application::Application(GLFWwindow* window)
   : window(window)
   , camera(inputState)
@@ -201,13 +202,13 @@ void Application::ImGuiFrame()
     ImGui::Separator();
 
     if (ImGui::Button("Save scene")) {
-      std::ofstream file(sceneFileName);
+      std::ofstream file(SCENE_FILE_NAME);
       currentScene.serialize(file);
     }
 
     if (ImGui::Button("Load scene")) {
-      std::ifstream file(sceneFileName);
-      currentScene.deserialise(file);
+      std::ifstream file(SCENE_FILE_NAME);
+      currentScene.deserialize(file);
     }
 
     displayElements();
@@ -227,6 +228,12 @@ void Application::ImGuiFrame()
     if (ImGui::Button("Randomise Positions")) {
       for (Atom& atom : currentScene.atoms) {
         atom.pos = glm::linearRand(glm::vec2(0, 0), glm::vec2(WIDTH, HEIGHT));
+      }
+    }
+
+    if (ImGui::Button("Randomise Bonds")) {
+      for (Atom& atom : currentScene.atoms) {
+        std::shuffle(atom.bonds.begin(), atom.bonds.end(), rng);
       }
     }
 
@@ -355,8 +362,8 @@ std::pair<glm::vec2, glm::vec2> Application::calculateAtomsBoundingBox()
     bottomLeft = glm::min(bottomLeft, atom.pos);
     topRight = glm::max(topRight, atom.pos);
   }
-  bottomLeft -= currentScene.atoms.begin()->radius;
-  topRight += currentScene.atoms.begin()->radius;
+  bottomLeft -= ATOM_RADIUS;
+  topRight += ATOM_RADIUS;
   return { { bottomLeft.x, topRight.y }, { topRight.x, bottomLeft.y } };
 }
 

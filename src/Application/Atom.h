@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "Config.h"
 
 struct Atom
 {
@@ -14,7 +15,6 @@ struct Atom
 
   bool isIntersecting(const glm::vec2& boxStart, const glm::vec2& boxEnd);
 
-  float radius = 40.0f;
   std::vector<struct Bond*> bonds;
 
   std::string name;

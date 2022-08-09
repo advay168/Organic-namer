@@ -5,19 +5,19 @@
 PhysicsFormatter::PhysicsFormatter(Scene& scene)
   : scene(scene)
 {
-  for (size_t n = 0; n < MAX_BONDS; n++) {
-    for (float theta = 0.0f; theta < 7.0f; theta += 0.005f) {
-      precomputedIdealPositions[n].push_back(getIdealPositions(theta, n));
+  for (uint8_t n = 0; n < MAX_BONDS; n++) {
+    for (float theta = 0.0f; theta < TWO_PI; theta += 0.005f) {
+      precomputedIdealPositions[n].push_back(calculateIdealPositions(theta, n));
     }
   }
 }
 
-PhysicsFormatter::PrecomputedArray_t PhysicsFormatter::getIdealPositions(
+PhysicsFormatter::PositionsArray_t PhysicsFormatter::calculateIdealPositions(
   float theta,
   uint8_t n)
 {
-  PrecomputedArray_t positions;
-  float offset = 2.0f * glm::pi<float>() / n;
+  PositionsArray_t positions;
+  float offset = TWO_PI / n;
   for (uint8_t i = 0; i < n; i++) {
     positions[i] = { glm::cos(theta + i * offset),
                      glm::sin(theta + i * offset) };
@@ -25,8 +25,10 @@ PhysicsFormatter::PrecomputedArray_t PhysicsFormatter::getIdealPositions(
   return positions;
 }
 
-float PhysicsFormatter::getDifference(const PrecomputedArray_t& idealPositions,
-                                      const PrecomputedArray_t& positions, size_t n)
+float PhysicsFormatter::calculateDifference(
+  const PositionsArray_t& idealPositions,
+  const PositionsArray_t& positions,
+  uint8_t n)
 {
   // TODO: use permutations
   float difference = 0;
@@ -37,14 +39,14 @@ float PhysicsFormatter::getDifference(const PrecomputedArray_t& idealPositions,
   return difference;
 }
 
-PhysicsFormatter::PrecomputedArray_t PhysicsFormatter::findOptimumArrangement(
-  const PrecomputedArray_t& positions,
-  size_t n)
+PhysicsFormatter::PositionsArray_t PhysicsFormatter::findOptimumArrangement(
+  const PositionsArray_t& positions,
+  uint8_t n)
 {
   float minVal = INFINITY;
-  PrecomputedArray_t minPositions;
+  PositionsArray_t minPositions;
   for (auto& idealPositions : precomputedIdealPositions[n]) {
-    float val = getDifference(idealPositions, positions, n);
+    float val = calculateDifference(idealPositions, positions, n);
     if (val < minVal) {
       minVal = val;
       minPositions = idealPositions;
@@ -57,11 +59,7 @@ void PhysicsFormatter::applyForce()
 {
   exertForce();
   for (Atom& atom : scene.atoms) {
-    if (glm::length(atom.force) > 0) {
-      glm::vec2 forceDir = glm::normalize(atom.force);
-      float forceMag = glm::length(atom.force);
-      atom.pos += forceDir * forceMag / 100.0f;
-    }
+    atom.pos += atom.force / 100.0f;
   }
 }
 
@@ -73,20 +71,20 @@ void PhysicsFormatter::exertForce()
   }
   for (Atom& centralAtom : scene.atoms) {
     glm::vec2 centralPos = centralAtom.pos;
-    PrecomputedArray_t positions;
-    size_t n = 0;
-    std::vector<Atom*> atoms;
+    PositionsArray_t positions;
+    uint8_t n = 0;
+    std::array<Atom*, MAX_BONDS> atoms;
     for (Bond* bond : centralAtom.bonds) {
       Atom& atom = bond->other(centralAtom);
       positions[n] = glm::normalize(atom.pos - centralPos);
-      atoms.push_back(&atom);
+      atoms[n] = &atom;
       n++;
     }
-    PrecomputedArray_t newOffsets = findOptimumArrangement(positions, n);
+    PositionsArray_t newOffsets = findOptimumArrangement(positions, n);
     for (uint8_t i = 0; i < n; i++) {
       Atom& atom = *atoms[i];
       glm::vec2 newOffset = newOffsets[i];
-      glm::vec2 newPos = bondLength * newOffset + centralPos;
+      glm::vec2 newPos = BOND_LENGTH * newOffset + centralPos;
       glm::vec2 delta = newPos - atom.pos;
       atom.force += delta;
       centralAtom.force -= delta;

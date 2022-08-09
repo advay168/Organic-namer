@@ -9,6 +9,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <array>
 
 #include <GLFW/glfw3.h>
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "Config.h"
 
 #include "Graphics/Screen.h"
 
@@ -56,7 +57,6 @@ private:
   InputState inputState;
 
   Scene currentScene;
-  static constexpr const char * sceneFileName = "scene.customformat"; 
 
   Atom* selectedAtom = nullptr;
   bool selectedAtomFollowMouse = false;
