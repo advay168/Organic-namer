@@ -6,7 +6,7 @@
 
 struct Scene
 {
-  void deserialise(std::istream& stream);
+  void deserialize(std::istream& stream);
 
   void serialize(std::ostream& stream);
 

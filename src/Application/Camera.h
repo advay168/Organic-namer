@@ -1,5 +1,6 @@
 #pragma once
 #include "Common.h"
+#include "Config.h"
 
 #include "InputState.h"
 
@@ -40,6 +41,4 @@ private:
   glm::mat4 projection;
 
   InputState& inputState;
-  static constexpr float movementSpeed = 500.0f;
-  static constexpr float zoomSpeed = 0.3f;
 };

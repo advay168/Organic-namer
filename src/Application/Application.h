@@ -1,14 +1,15 @@
 #pragma once
 #include "Common.h"
+#include "Config.h"
 
 #include "Graphics/Screen.h"
 
 #include "Atom.h"
 #include "Bond.h"
-#include "Scene.h"
 #include "Camera.h"
 #include "InputState.h"
 #include "PhysicsFormatter.h"
+#include "Scene.h"
 #include "SelectionBox.h"
 
 class Application
@@ -56,7 +57,6 @@ private:
   InputState inputState;
 
   Scene currentScene;
-  static constexpr const char * sceneFileName = "scene.customformat"; 
 
   Atom* selectedAtom = nullptr;
   bool selectedAtomFollowMouse = false;
@@ -64,7 +64,6 @@ private:
   std::vector<std::pair<std::string, std::string>> elementsList;
   int selectedTmpAtom = -1;
   std::unique_ptr<Atom> tmpAtom;
-
 
   SelectionBox selectionBox;
 

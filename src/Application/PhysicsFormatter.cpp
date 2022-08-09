@@ -5,50 +5,67 @@
 PhysicsFormatter::PhysicsFormatter(Scene& scene)
   : scene(scene)
 {
+  auto comparer = [](const glm::vec2& a, const glm::vec2& b) {
+    // return a < b
+    return glm::acos(a.x) < glm::acos(b.x);
+  };
+  for (uint8_t n = 0; n < MAX_BONDS; n++) {
+    for (float theta = 0.0f; theta < TWO_PI; theta += 0.005f) {
+      auto temp = calculateIdealPositions(theta, n);
+#if (false)
+      std::sort(temp.begin(), temp.end(), comparer);
+      do {
+        precomputedIdealPositions[n].push_back(temp);
+      } while (std::next_permutation(
+        temp.begin() + 1,
+        temp.end(),
+        comparer)); // Rotation takes care of first element
+#else
+      (void)comparer;
+      precomputedIdealPositions[n].push_back(temp);
+#endif
+    }
+  }
 }
 
-std::vector<glm::vec2> getIdealPositions(float theta, uint8_t n)
+PhysicsFormatter::PositionsArray_t PhysicsFormatter::calculateIdealPositions(
+  float theta,
+  uint8_t n)
 {
-  std::vector<glm::vec2> positions;
-  float offset = 2.0f * glm::pi<float>() / n;
+  PositionsArray_t positions;
+  float offset = TWO_PI / n;
   for (uint8_t i = 0; i < n; i++) {
-    positions.push_back(
-      { glm::cos(theta + i * offset), glm::sin(theta + i * offset) });
+    positions[i] = { glm::cos(theta + i * offset),
+                     glm::sin(theta + i * offset) };
   }
   return positions;
 }
 
-struct Result
-{
-  std::vector<glm::vec2> newPositions;
-  float difference;
-};
-
-Result getDifference(const std::vector<glm::vec2>& idealPositions,
-                     const std::vector<glm::vec2>& positions)
+float PhysicsFormatter::calculateDifference(
+  const PositionsArray_t& idealPositions,
+  const PositionsArray_t& positions,
+  uint8_t n)
 {
   // TODO: use permutations
   float difference = 0;
-  for (uint8_t i = 0; i < positions.size(); i++) {
+  for (uint8_t i = 0; i < n; i++) {
     float dist = glm::distance(idealPositions[i], positions[i]);
     difference += dist * dist;
   }
-  return { idealPositions, difference };
+  return difference;
 }
 
-std::vector<glm::vec2> findOptimumArrangement(
-  const std::vector<glm::vec2>& positions)
+PhysicsFormatter::PositionsArray_t PhysicsFormatter::findOptimumArrangement(
+  const PositionsArray_t& positions,
+  uint8_t n)
 {
   float minVal = INFINITY;
-  std::vector<glm::vec2> minPositions;
-  for (float theta = 0.0f; theta < 7.0f; theta += 0.005f) {
-    std::vector<glm::vec2> idealPositions =
-      getIdealPositions(theta, positions.size());
-    std::vector<std::vector<glm::vec2>> permutations;
-    auto [newPositions, val] = getDifference(idealPositions, positions);
+  PositionsArray_t minPositions;
+  for (auto& idealPositions : precomputedIdealPositions[n]) {
+    float val = calculateDifference(idealPositions, positions, n);
     if (val < minVal) {
       minVal = val;
-      minPositions = newPositions;
+      minPositions = idealPositions;
     }
   }
   return minPositions;
@@ -58,11 +75,7 @@ void PhysicsFormatter::applyForce()
 {
   exertForce();
   for (Atom& atom : scene.atoms) {
-    if (glm::length(atom.force) > 0) {
-      glm::vec2 forceDir = glm::normalize(atom.force);
-      float forceMag = glm::length(atom.force);
-      atom.pos += forceDir * forceMag / 100.0f;
-    }
+    atom.pos += atom.force / 100.0f;
   }
 }
 
@@ -74,20 +87,20 @@ void PhysicsFormatter::exertForce()
   }
   for (Atom& centralAtom : scene.atoms) {
     glm::vec2 centralPos = centralAtom.pos;
-    std::vector<glm::vec2> positions;
-    std::vector<Atom*> atoms;
+    PositionsArray_t positions;
+    uint8_t n = 0;
+    std::array<Atom*, MAX_BONDS> atoms;
     for (Bond* bond : centralAtom.bonds) {
       Atom& atom = bond->other(centralAtom);
-      if (&atom != &centralAtom) {
-        positions.push_back(glm::normalize(atom.pos - centralPos));
-        atoms.push_back(&atom);
-      }
+      positions[n] = glm::normalize(atom.pos - centralPos);
+      atoms[n] = &atom;
+      n++;
     }
-    std::vector<glm::vec2> newOffsets = findOptimumArrangement(positions);
-    for (uint8_t i = 0; i < newOffsets.size(); i++) {
+    PositionsArray_t newOffsets = findOptimumArrangement(positions, n);
+    for (uint8_t i = 0; i < n; i++) {
       Atom& atom = *atoms[i];
       glm::vec2 newOffset = newOffsets[i];
-      glm::vec2 newPos = bondLength * newOffset + centralPos;
+      glm::vec2 newPos = BOND_LENGTH * newOffset + centralPos;
       glm::vec2 delta = newPos - atom.pos;
       atom.force += delta;
       centralAtom.force -= delta;

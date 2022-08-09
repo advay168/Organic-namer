@@ -67,8 +67,12 @@ int main()
   ImGui_ImplGlfw_InitForOpenGL(window, true);
   ImGui_ImplOpenGL3_Init(glsl_version);
   glfwSwapInterval(1);
-  while (!glfwWindowShouldClose(window)) {
-    application.runFrame();
+  try {
+    while (!glfwWindowShouldClose(window)) {
+      application.runFrame();
+    }
+  } catch (const std::exception& ex) {
+    std::cerr << ex.what() << std::endl;
   }
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();

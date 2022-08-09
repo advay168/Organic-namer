@@ -29,13 +29,13 @@ void Atom::draw(bool selected)
   glm::vec3 color = this->color + (selected ? 0.2f : 0.0f);
   glm::vec3 textColor(grayscale > 186 ? 0.0f : 1.0f);
   if (selected)
-    Renderer::BorderCircle(pos, radius, color, 1.0f, glm::vec3(1.0f));
-  Renderer::TextCircle(pos, radius, color, symbol, 1.0f, textColor);
+    Renderer::BorderCircle(pos, ATOM_RADIUS, color, 1.0f, glm::vec3(1.0f));
+  Renderer::TextCircle(pos, ATOM_RADIUS, color, symbol, 1.0f, textColor);
 }
 
 bool Atom::isIntersecting(const glm::vec2& mousePos)
 {
-  return glm::distance2(mousePos, pos) < radius * radius;
+  return glm::distance2(mousePos, pos) < ATOM_RADIUS * ATOM_RADIUS;
 }
 
 bool Atom::isIntersecting(const glm::vec2& boxStart, const glm::vec2& boxEnd)
