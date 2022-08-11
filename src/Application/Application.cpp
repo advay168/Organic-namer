@@ -151,8 +151,10 @@ void Application::updateFrame()
   if (tmpAtom) {
     tmpAtom->pos = inputState.mousePos;
   }
-  if (simulating)
-    physicsFormatter.applyForce();
+  if (simulating) {
+    if (physicsFormatter.applyForce())
+      simulating = false;
+  }
 }
 
 void Application::drawFrame()

@@ -10,7 +10,7 @@ public:
   PhysicsFormatter(Scene& scene);
 
   void exertForce();
-  void applyForce();
+  bool applyForce();
 
   void draw();
 
@@ -23,8 +23,8 @@ private:
                             const PositionsArray_t& positions,
                             uint8_t n);
 
-  PositionsArray_t findOptimumArrangement(const PositionsArray_t& positions,
-                                          uint8_t n);
+  PositionsArray_t& findOptimumArrangement(const PositionsArray_t& positions,
+                                           uint8_t n);
 
   void optimiseForce();
 

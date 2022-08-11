@@ -1,5 +1,7 @@
 #include "Renderer.h"
 
+static std::vector<std::function<void()>> debugFuncs;
+
 static glm::mat4 view;
 static glm::mat4 projection;
 
@@ -21,11 +23,21 @@ void Renderer::Begin()
 
 void Renderer::End()
 {
+  while (debugFuncs.size()) {
+    debugFuncs.back()();
+    debugFuncs.pop_back();
+  }
+
   LineRenderer::End();
   QuadRenderer::End();
   QuadRenderer::End();
   CircleRenderer::End();
   TextRenderer::End();
+}
+
+void Renderer::DebugRenderFunction(std::function<void()> func)
+{
+  debugFuncs.push_back(func);
 }
 
 void Renderer::setViewMatrix(const glm::mat4& viewMatrix)

@@ -1,6 +1,8 @@
 #pragma once
 #include "Common.h"
 
+#include "functional"
+
 #include "Circle.h"
 #include "Line.h"
 #include "Quad.h"
@@ -20,6 +22,8 @@ public:
   static void Begin();
 
   static void End();
+
+  static void DebugRenderFunction(std::function<void()> func);
 
   static void setViewMatrix(const glm::mat4& viewMatrix);
   static void setProjectionMatrix(const glm::mat4& projectionMatrix);

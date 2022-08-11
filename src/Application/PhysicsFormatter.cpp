@@ -1,6 +1,7 @@
 #include "PhysicsFormatter.h"
-#include <Renderer/Renderer.h>
 #include <glm/trigonometric.hpp>
+
+#include <Renderer/Renderer.h>
 
 PhysicsFormatter::PhysicsFormatter(Scene& scene)
   : scene(scene)
@@ -46,7 +47,6 @@ float PhysicsFormatter::calculateDifference(
   const PositionsArray_t& positions,
   uint8_t n)
 {
-  // TODO: use permutations
   float difference = 0;
   for (uint8_t i = 0; i < n; i++) {
     float dist = glm::distance(idealPositions[i], positions[i]);
@@ -55,28 +55,31 @@ float PhysicsFormatter::calculateDifference(
   return difference;
 }
 
-PhysicsFormatter::PositionsArray_t PhysicsFormatter::findOptimumArrangement(
+PhysicsFormatter::PositionsArray_t& PhysicsFormatter::findOptimumArrangement(
   const PositionsArray_t& positions,
   uint8_t n)
 {
   float minVal = INFINITY;
-  PositionsArray_t minPositions;
+  PositionsArray_t* minPositionsPtr;
   for (auto& idealPositions : precomputedIdealPositions[n]) {
     float val = calculateDifference(idealPositions, positions, n);
     if (val < minVal) {
       minVal = val;
-      minPositions = idealPositions;
+      minPositionsPtr = &idealPositions;
     }
   }
-  return minPositions;
+  return *minPositionsPtr;
 }
 
-void PhysicsFormatter::applyForce()
+bool PhysicsFormatter::applyForce()
 {
+  glm::vec2 delta(0.0f);
   exertForce();
   for (Atom& atom : scene.atoms) {
+    delta += glm::abs(atom.force);
     atom.pos += atom.force / 100.0f;
   }
+  return glm::length(delta) < 2.0f;
 }
 
 void PhysicsFormatter::exertForce()
