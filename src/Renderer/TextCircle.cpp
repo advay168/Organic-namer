@@ -9,6 +9,6 @@ void TextCircleRenderer::TextCircle(const glm::vec2& center,
                                     float scale,
                                     const glm::vec3& textColor)
 {
-  Renderer::Circle(center, radius, circleColor);
-  Renderer::CenteredText(text, center, scale, textColor);
+    Renderer::Circle(center, radius, circleColor);
+    Renderer::CenteredText(text, center, scale, textColor);
 }
