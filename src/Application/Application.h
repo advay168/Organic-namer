@@ -7,22 +7,22 @@
 #include "Atom.h"
 #include "Bond.h"
 #include "Camera.h"
+#include "Element.h"
 #include "InputState.h"
 #include "PhysicsFormatter.h"
 #include "Scene.h"
 #include "SelectionBox.h"
 
-class Application
-{
+class Application {
 public:
-  Application(GLFWwindow* window);
+  Application(GLFWwindow *window);
 
   void runFrame();
 
 private:
   void processInput();
   void handleAtomsInput();
-  void selectAtomWithin(const glm::vec2& start, const glm::vec2& end);
+  void selectAtomWithin(const glm::vec2 &start, const glm::vec2 &end);
 
   void updateFrame();
   void drawFrame();
@@ -31,20 +31,20 @@ private:
   void displayElements();
   void displayDeletionOptions();
 
-  void createBond(Atom* a, Atom* b);
-  void deleteAtom(Atom* atomToDel);
-  void deleteBond(Bond* bondToDel);
+  void createBond(Atom *a, Atom *b);
+  void deleteAtom(Atom *atomToDel);
+  void deleteBond(Bond *bondToDel);
 
   std::pair<glm::vec2, glm::vec2> calculateAtomsBoundingBox();
 
-  Atom* findHoveredAtom(); // TODO
+  Atom *findHoveredAtom(); // TODO
   void bringAtomsIntoView();
   void calcWindowSize();
   void calcCursorPos();
   void setInputState();
 
 private:
-  GLFWwindow* window;
+  GLFWwindow *window;
 
   Screen screen;
   float deltaTime = 0.0f;
@@ -58,10 +58,13 @@ private:
 
   Scene currentScene;
 
-  Atom* selectedAtom = nullptr;
+  std::array<Element, 4> elementsList = {Element::Hydrogen, Element::Carbon,
+                                         Element::Nitrogen, Element::Oxygen};
+
+  Atom *selectedAtom = nullptr;
   bool selectedAtomFollowMouse = false;
 
-  std::vector<std::pair<std::string, std::string>> elementsList;
+  // std::vector<std::pair<std::string, std::string>> elementsList;
   int selectedTmpAtom = -1;
   std::unique_ptr<Atom> tmpAtom;
 

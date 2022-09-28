@@ -6,27 +6,20 @@
 #include "backends/imgui_impl_glfw.h"
 #include "backends/imgui_impl_opengl3.h"
 
-#include "Graphics/WindowData.h"
-#include "Renderer/Renderer.h"
 #include "glm/gtc/random.hpp"
 #include "glm/gtx/transform.hpp"
 
-std::default_random_engine rng;
-Application::Application(GLFWwindow* window)
-  : window(window)
-  , camera(inputState)
-  , selectionBox(inputState)
-  , physicsFormatter(currentScene)
-{
-  Renderer::Init();
+#include "Graphics/WindowData.h"
+#include "Renderer/Renderer.h"
 
-  elementsList.emplace_back("Hydrogen", "H");
-  elementsList.emplace_back("Helium", "He");
-  elementsList.emplace_back("Lithium", "Li");
+std::default_random_engine rng;
+Application::Application(GLFWwindow *window)
+    : window(window), camera(inputState), selectionBox(inputState),
+      physicsFormatter(currentScene) {
+  Renderer::Init();
 }
 
-void Application::runFrame()
-{
+void Application::runFrame() {
   float currentFrame = glfwGetTime();
   deltaTime = currentFrame - lastFrame;
   lastFrame = currentFrame;
@@ -54,9 +47,9 @@ void Application::runFrame()
   ImGui::Render();
   ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-  ImGuiIO& io = ImGui::GetIO();
+  ImGuiIO &io = ImGui::GetIO();
   if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-    GLFWwindow* backup_current_context = glfwGetCurrentContext();
+    GLFWwindow *backup_current_context = glfwGetCurrentContext();
     ImGui::UpdatePlatformWindows();
     ImGui::RenderPlatformWindowsDefault();
     glfwMakeContextCurrent(backup_current_context);
@@ -66,15 +59,14 @@ void Application::runFrame()
   glfwPollEvents();
 }
 
-void Application::processInput()
-{
+void Application::processInput() {
   handleAtomsInput();
   camera.processInput(deltaTime);
   if (!(selectedAtom || tmpAtom))
     selectionBox.processInput(deltaTime);
   if (selectionBox.shouldSelectAtoms) {
     selectionBox.shouldSelectAtoms = false;
-    const auto& [start, end] = selectionBox.getSelectionBox();
+    const auto &[start, end] = selectionBox.getSelectionBox();
     selectAtomWithin(start, end);
     if (inputState.isKeyPressed(ImGuiKey_LeftCtrl)) {
       selectedAtomFollowMouse = true;
@@ -82,8 +74,7 @@ void Application::processInput()
   }
 }
 
-void Application::handleAtomsInput()
-{
+void Application::handleAtomsInput() {
   if (inputState.isKeyPressed(ImGuiKey_Escape)) {
     selectedAtom = nullptr;
     selectedAtomFollowMouse = false;
@@ -105,7 +96,7 @@ void Application::handleAtomsInput()
 
   if (tmpAtom) {
     currentScene.atoms.push_back(
-      *tmpAtom); // not same atom as vector creates copy
+        *tmpAtom); // not same atom as vector creates copy
     return;
   }
 
@@ -115,7 +106,7 @@ void Application::handleAtomsInput()
     return;
   }
 
-  Atom* atom = findHoveredAtom();
+  Atom *atom = findHoveredAtom();
   if (!atom) {
     selectedAtom = nullptr;
     return;
@@ -134,9 +125,9 @@ void Application::handleAtomsInput()
   }
 }
 
-void Application::selectAtomWithin(const glm::vec2& start, const glm::vec2& end)
-{
-  for (Atom& atom : currentScene.atoms) {
+void Application::selectAtomWithin(const glm::vec2 &start,
+                                   const glm::vec2 &end) {
+  for (Atom &atom : currentScene.atoms) {
     if (atom.isIntersecting(start, end)) {
       selectedAtom = &atom;
       return;
@@ -144,8 +135,7 @@ void Application::selectAtomWithin(const glm::vec2& start, const glm::vec2& end)
   }
 }
 
-void Application::updateFrame()
-{
+void Application::updateFrame() {
   if (selectedAtom && selectedAtomFollowMouse)
     selectedAtom->pos = inputState.mousePos;
   if (tmpAtom) {
@@ -157,21 +147,19 @@ void Application::updateFrame()
   }
 }
 
-void Application::drawFrame()
-{
-  for (Atom& atom : currentScene.atoms)
+void Application::drawFrame() {
+  for (Atom &atom : currentScene.atoms)
     atom.draw(selectedAtom == &atom);
   if (tmpAtom)
     tmpAtom->draw(false);
 
-  for (Bond& bond : currentScene.bonds)
+  for (Bond &bond : currentScene.bonds)
     bond.draw();
 
   selectionBox.draw();
 }
 
-void Application::ImGuiFrame()
-{
+void Application::ImGuiFrame() {
   {
     ImGui::Begin("Application");
     calcWindowSize();
@@ -179,10 +167,8 @@ void Application::ImGuiFrame()
     setInputState();
     inputState.windowFocused = ImGui::IsWindowFocused();
 
-    ImGui::Image((void*)(intptr_t)screen.textureColorbuffer,
-                 { width, height },
-                 { 0.0f, 1.0f },
-                 { 1.0f, 0.0f });
+    ImGui::Image((void *)(intptr_t)screen.textureColorbuffer, {width, height},
+                 {0.0f, 1.0f}, {1.0f, 0.0f});
 
     if (selectedAtom && selectedAtomFollowMouse) {
       ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
@@ -228,13 +214,13 @@ void Application::ImGuiFrame()
     }
 
     if (ImGui::Button("Randomise Positions")) {
-      for (Atom& atom : currentScene.atoms) {
+      for (Atom &atom : currentScene.atoms) {
         atom.pos = glm::linearRand(glm::vec2(0, 0), glm::vec2(WIDTH, HEIGHT));
       }
     }
 
     if (ImGui::Button("Randomise Bonds")) {
-      for (Atom& atom : currentScene.atoms) {
+      for (Atom &atom : currentScene.atoms) {
         std::shuffle(atom.bonds.begin(), atom.bonds.end(), rng);
       }
     }
@@ -249,9 +235,8 @@ void Application::ImGuiFrame()
   ImGui::ShowMetricsWindow();
 }
 
-void Application::displayZoomOptions()
-{
-  ImGui::SetCursorPos({ width - 30.0f, height - 45.0f });
+void Application::displayZoomOptions() {
+  ImGui::SetCursorPos({width - 30.0f, height - 45.0f});
   ImGui::BeginGroup();
   glm::vec2 oldCursorPos = ImGui::GetCursorPos();
   if (ImGui::Button("Home")) {
@@ -261,33 +246,37 @@ void Application::displayZoomOptions()
   float HomeWidth = ImGui::GetCursorPos().x - oldCursorPos.x - 4.0f;
   ImGui::Dummy({});
   ImGui::Indent((HomeWidth - 20.0f) / 2.0f);
-  if (ImGui::Button("-", { 20.0f, 20.0f })) {
+  if (ImGui::Button("-", {20.0f, 20.0f})) {
     camera.ZoomOut();
   }
-  if (ImGui::Button("+", { 20.0f, 20.0f })) {
+  if (ImGui::Button("+", {20.0f, 20.0f})) {
     camera.ZoomIn();
   }
   ImGui::EndGroup();
 }
 
-void Application::displayElements()
-{
+void Application::displayElements() {
   ImGui::Text("Elements: ");
   ImGui::SameLine();
   if (ImGui::BeginCombo("###atomCombo",
                         selectedTmpAtom == -1
-                          ? "Select"
-                          : elementsList[selectedTmpAtom].first.c_str())) {
+                            ? "Select"
+                            : elementsList[selectedTmpAtom].name())) {
     for (size_t i = 0; i < elementsList.size(); i++) {
-      if (ImGui::Selectable(elementsList[i].first.c_str(),
+      if (ImGui::Selectable(elementsList[i].name(),
                             (int)i == selectedTmpAtom)) {
         if ((int)i == selectedTmpAtom) {
           selectedTmpAtom = -1;
           tmpAtom.reset();
         } else {
           selectedTmpAtom = i;
-          tmpAtom.reset(
-            new Atom(elementsList[i].first, elementsList[i].second));
+          if (elementsList[i].hasCustomColor())
+            tmpAtom.reset(new Atom(elementsList[i].name(),
+                                   elementsList[i].symbol(),
+                                   elementsList[i].color()));
+          else
+            tmpAtom.reset(
+                new Atom(elementsList[i].name(), elementsList[i].symbol()));
         }
       }
     }
@@ -295,16 +284,15 @@ void Application::displayElements()
   }
 }
 
-void Application::displayDeletionOptions()
-{
+void Application::displayDeletionOptions() {
   if (selectedAtom) {
     ImGui::Text("%s", selectedAtom->name.c_str());
     if (ImGui::Button("Delete Atom")) {
       deleteAtom(selectedAtom);
     } else {
-      auto& atomBonds = selectedAtom->bonds;
-      Bond* bondToDel = nullptr;
-      for (Bond* bond : atomBonds) {
+      auto &atomBonds = selectedAtom->bonds;
+      Bond *bondToDel = nullptr;
+      for (Bond *bond : atomBonds) {
         std::stringstream name;
         name << "Delete 1 bond to " << bond->other(selectedAtom).name << "##"
              << bond;
@@ -320,10 +308,9 @@ void Application::displayDeletionOptions()
   }
 }
 
-void Application::createBond(Atom* a, Atom* b)
-{
+void Application::createBond(Atom *a, Atom *b) {
   Bond tmpBond(a, b);
-  for (Bond& bond : currentScene.bonds) {
+  for (Bond &bond : currentScene.bonds) {
     if (bond == tmpBond) {
       ++bond.count;
       return;
@@ -332,46 +319,40 @@ void Application::createBond(Atom* a, Atom* b)
   currentScene.bonds.push_back(tmpBond);
 }
 
-void Application::deleteAtom(Atom* atomToDel)
-{
+void Application::deleteAtom(Atom *atomToDel) {
   while (atomToDel->bonds.size()) {
     deleteBond(atomToDel->bonds[0]);
   }
-  currentScene.atoms.erase(std::find_if(
-    currentScene.atoms.begin(), currentScene.atoms.end(), [atomToDel](Atom& a) {
-      return &a == atomToDel;
-    }));
+  currentScene.atoms.erase(
+      std::find_if(currentScene.atoms.begin(), currentScene.atoms.end(),
+                   [atomToDel](Atom &a) { return &a == atomToDel; }));
   if (selectedAtom == atomToDel)
     selectedAtom = nullptr;
 }
 
-void Application::deleteBond(Bond* bondToDel)
-{
-  auto it = std::find_if(currentScene.bonds.begin(),
-                         currentScene.bonds.end(),
-                         [bondToDel](Bond& x) { return &x == bondToDel; });
+void Application::deleteBond(Bond *bondToDel) {
+  auto it = std::find_if(currentScene.bonds.begin(), currentScene.bonds.end(),
+                         [bondToDel](Bond &x) { return &x == bondToDel; });
   currentScene.bonds.erase(it);
 }
 
-std::pair<glm::vec2, glm::vec2> Application::calculateAtomsBoundingBox()
-{
+std::pair<glm::vec2, glm::vec2> Application::calculateAtomsBoundingBox() {
   if (currentScene.atoms.empty()) {
-    return { { 0.0f, HEIGHT }, { WIDTH, 0.0f } };
+    return {{0.0f, HEIGHT}, {WIDTH, 0.0f}};
   }
   glm::vec2 topRight(0.0f, 0.0f);
   glm::vec2 bottomLeft(WIDTH, HEIGHT);
-  for (Atom& atom : currentScene.atoms) {
+  for (Atom &atom : currentScene.atoms) {
     bottomLeft = glm::min(bottomLeft, atom.pos);
     topRight = glm::max(topRight, atom.pos);
   }
   bottomLeft -= ATOM_RADIUS;
   topRight += ATOM_RADIUS;
-  return { { bottomLeft.x, topRight.y }, { topRight.x, bottomLeft.y } };
+  return {{bottomLeft.x, topRight.y}, {topRight.x, bottomLeft.y}};
 }
 
-Atom* Application::findHoveredAtom()
-{
-  for (Atom& atom : currentScene.atoms) {
+Atom *Application::findHoveredAtom() {
+  for (Atom &atom : currentScene.atoms) {
     if (atom.isIntersecting(inputState.mousePos)) {
       return &atom;
     }
@@ -379,8 +360,7 @@ Atom* Application::findHoveredAtom()
   return nullptr;
 }
 
-void Application::bringAtomsIntoView()
-{
+void Application::bringAtomsIntoView() {
   auto [topLeft, bottomRight] = calculateAtomsBoundingBox();
   float offset = 5.0f;
   topLeft += glm::vec2(-offset, offset);
@@ -389,7 +369,7 @@ void Application::bringAtomsIntoView()
   float rectHeight = topLeft.y - bottomRight.y;
 
   glm::vec2 rectCentre = (topLeft + bottomRight) / 2.0f;
-  camera.setCameraPos({ rectCentre.x, rectCentre.y, 1.0f });
+  camera.setCameraPos({rectCentre.x, rectCentre.y, 1.0f});
 
   float virtualAspect = float(WIDTH) / HEIGHT;
   float rectAspect = rectWidth / rectHeight;
@@ -400,8 +380,7 @@ void Application::bringAtomsIntoView()
   }
 }
 
-void Application::calcWindowSize()
-{
+void Application::calcWindowSize() {
   float virtualAspect = float(WIDTH) / HEIGHT;
   auto [windowWidth, windowHeight] = ImGui::GetContentRegionAvail();
   float screenAspect = windowWidth / windowHeight;
@@ -416,28 +395,26 @@ void Application::calcWindowSize()
   }
 }
 
-void Application::calcCursorPos()
-{
+void Application::calcCursorPos() {
   glm::vec2 cursorPos = ImGui::GetCursorScreenPos();
   glm::vec2 window_size = glm::vec2(width, height);
   glm::vec2 realMousePos = ImGui::GetMousePos();
 
   glm::vec2 localCoord = (realMousePos - cursorPos) / window_size;
-  if (localCoord != glm::clamp(localCoord, { 0.0f, 0.0f }, { 1.0f, 1.0f })) {
+  if (localCoord != glm::clamp(localCoord, {0.0f, 0.0f}, {1.0f, 1.0f})) {
     inputState.outOfWindow = true;
-    localCoord = glm::clamp(localCoord, { 0.0f, 0.0f }, { 1.0f, 1.0f });
+    localCoord = glm::clamp(localCoord, {0.0f, 0.0f}, {1.0f, 1.0f});
   } else {
     inputState.outOfWindow = false;
   }
   localCoord.y = 1.0f - localCoord.y;
   inputState.mousePos = localCoord * glm::vec2(WIDTH, HEIGHT);
   inputState.mousePos =
-    camera.getInverseViewMatrix() *
-    glm::vec4(inputState.mousePos.x, inputState.mousePos.y, 0.0f, 1.0f);
+      camera.getInverseViewMatrix() *
+      glm::vec4(inputState.mousePos.x, inputState.mousePos.y, 0.0f, 1.0f);
 }
 
-void Application::setInputState()
-{
+void Application::setInputState() {
   inputState.leftMouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Left);
   inputState.leftMousePressed = ImGui::IsMouseDown(ImGuiMouseButton_Left);
   inputState.rightMouseClicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);

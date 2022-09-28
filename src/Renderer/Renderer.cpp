@@ -1,6 +1,8 @@
 #include "Renderer.h"
 
-static std::vector<std::function<void()>> debugFuncs;
+#include <deque>
+
+static std::deque<std::function<void()>> debugFuncs;
 
 static glm::mat4 view;
 static glm::mat4 projection;
