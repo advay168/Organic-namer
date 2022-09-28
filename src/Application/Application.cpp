@@ -1,6 +1,7 @@
 #include "Application.h"
 
 #include <fstream>
+#include <imgui.h>
 #include <random>
 
 #include "backends/imgui_impl_glfw.h"
@@ -20,6 +21,11 @@ Application::Application(GLFWwindow* window)
     , physicsFormatter(currentScene)
 {
     Renderer::Init();
+
+    ImGuiIO& io = ImGui::GetIO();
+    const char* fontFileName = "res/fonts/NotoSansMono_SemiCondensed-Regular.ttf";
+    normalFont = io.Fonts->AddFontFromFileTTF(fontFileName, 18.0f);
+    largeFont = io.Fonts->AddFontFromFileTTF(fontFileName, 30.0f);
 }
 
 void Application::runFrame()
@@ -35,6 +41,7 @@ void Application::runFrame()
     ImGui::NewFrame();
     ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_PassthruCentralNode;
     ImGui::DockSpaceOverViewport(ImGui::GetMainViewport(), dockspace_flags);
+    ImGui::PushFont(normalFont);
 
     screen.Bind();
     Renderer::Begin();
@@ -47,7 +54,9 @@ void Application::runFrame()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    ImGuiFrame();
+    imGuiFrame();
+
+    ImGui::PopFont();
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -182,7 +191,7 @@ void Application::drawFrame()
     selectionBox.draw();
 }
 
-void Application::ImGuiFrame()
+void Application::imGuiFrame()
 {
     {
         ImGui::Begin("Application");
@@ -228,21 +237,12 @@ void Application::ImGuiFrame()
 
         displayElements();
 
+        ImGui::Separator();
+
         if (ImGui::Button("Bring all atoms into view"))
         {
             bringAtomsIntoView();
         }
-
-        if (ImGui::Button("Simulate"))
-        {
-            physicsFormatter.exertForce();
-        }
-
-        if (ImGui::Button("Apply force"))
-        {
-            physicsFormatter.applyForce();
-        }
-
         if (ImGui::Button("Randomise Positions"))
         {
             for (Atom& atom : currentScene.atoms)
@@ -251,7 +251,7 @@ void Application::ImGuiFrame()
             }
         }
 
-        if (ImGui::Button("Randomise Bonds"))
+        if (ImGui::Button("Randomise Bond orders"))
         {
             for (Atom& atom : currentScene.atoms)
             {
@@ -262,6 +262,10 @@ void Application::ImGuiFrame()
         ImGui::Checkbox("Simulation", &simulating);
 
         displayDeletionOptions();
+
+        ImGui::Separator();
+
+        displayNamer();
 
         ImGui::End();
     } // Controls menu
@@ -358,6 +362,23 @@ void Application::displayDeletionOptions()
             }
         }
     }
+}
+
+void Application::displayNamer()
+{
+    if (ImGui::Button("Name Compound"))
+    {
+        namer = new Namer(currentScene);
+        compoundName = namer->getName();
+        delete namer;
+    }
+    if (compoundName.empty())
+        return;
+    ImGui::Text("Name of compound: ");
+    ImGui::SameLine();
+    ImGui::PushFont(largeFont);
+    ImGui::Text("%s", compoundName.c_str());
+    ImGui::PopFont();
 }
 
 void Application::createBond(Atom* a, Atom* b)

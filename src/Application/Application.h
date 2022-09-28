@@ -12,6 +12,7 @@
 #include "PhysicsFormatter.h"
 #include "Scene.h"
 #include "SelectionBox.h"
+#include "Namer.h"
 
 class Application
 {
@@ -27,10 +28,11 @@ private:
 
     void updateFrame();
     void drawFrame();
-    void ImGuiFrame();
+    void imGuiFrame();
     void displayZoomOptions();
     void displayElements();
     void displayDeletionOptions();
+    void displayNamer();
 
     void createBond(Atom* a, Atom* b);
     void deleteAtom(Atom* atomToDel);
@@ -53,6 +55,10 @@ private:
     float width;
     float height;
 
+    // fonts
+    ImFont* normalFont;
+    ImFont* largeFont;
+
     Camera camera;
 
     InputState inputState;
@@ -73,4 +79,7 @@ private:
 
     PhysicsFormatter physicsFormatter;
     bool simulating = false;
+
+    Namer* namer;
+    std::string compoundName = "";
 };

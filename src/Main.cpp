@@ -52,8 +52,6 @@ int main()
     // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+
     // only glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // 3.0+ only
 #endif
-    Application application(window);
-    windowData.application = &application;
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -69,6 +67,8 @@ int main()
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(glsl_version);
     glfwSwapInterval(1);
+    Application application(window);
+    windowData.application = &application;
     try
     {
         while (!glfwWindowShouldClose(window))
@@ -78,7 +78,7 @@ int main()
     }
     catch (const std::exception& ex)
     {
-        std::cerr << ex.what() << std::endl;
+        std::cerr << "Exception occured: " << ex.what() << std::endl;
     }
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
