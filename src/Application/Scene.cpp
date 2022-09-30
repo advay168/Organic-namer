@@ -5,23 +5,18 @@ void Scene::deserialize(std::istream& stream)
     std::vector<Atom*> indexedAtoms;
     while (stream.peek() != '$')
     {
-        std::string name, symbol;
-        std::getline(stream, name, ',');
-        std::getline(stream, symbol, ',');
+        ElementType el;
+        stream >> (uint16_t&)el.elementType;
 
-        float px, py, cr, cg, cb;
-        stream >> px;
-        stream >> py;
-        stream >> cr;
-        stream >> cg;
-        stream >> cb;
+        float px, py;
+        stream >> px >> py;
 
         if (stream.get() != '\n')
         {
-            throw std::runtime_error("Malformed input to scene deserializer");
+            throw std::runtime_error("Malformed input to scene deserializer. Expected \\n at end of atom data.");
         }
 
-        Atom a(name, symbol, { cr, cg, cb });
+        Atom a(el);
         a.pos = { px, py };
         atoms.push_back(std::move(a));
         indexedAtoms.push_back(&atoms.back());
@@ -55,12 +50,9 @@ void Scene::serialize(std::ostream& stream)
     std::map<Atom*, uint64_t> mapping;
     for (Atom& atom : atoms)
     {
-        stream << atom.name << ",";
-        stream << atom.symbol << ",";
+        stream << (uint16_t)atom.element.elementType << " ";
         glm::vec2& p = atom.pos;
-        stream << p.x << " " << p.y << " ";
-        glm::vec3& c = atom.color;
-        stream << c.r << " " << c.g << " " << c.b;
+        stream << p.x << " " << p.y;
         stream << "\n";
 
         mapping[&atom] = idx;

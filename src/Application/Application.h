@@ -9,10 +9,10 @@
 #include "Camera.h"
 #include "Element.h"
 #include "InputState.h"
+#include "Namer.h"
 #include "PhysicsFormatter.h"
 #include "Scene.h"
 #include "SelectionBox.h"
-#include "Namer.h"
 
 class Application
 {
@@ -65,8 +65,7 @@ private:
 
     Scene currentScene;
 
-    std::array<Element, 4> elementsList = { Element::Hydrogen, Element::Carbon,
-                                            Element::Nitrogen, Element::Oxygen };
+    std::array<ElementType, 4> elementsList = { ElementType::Hydrogen, ElementType::Carbon, ElementType::Nitrogen, ElementType::Oxygen };
 
     Atom* selectedAtom = nullptr;
     bool selectedAtomFollowMouse = false;

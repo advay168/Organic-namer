@@ -319,13 +319,7 @@ void Application::displayElements()
                 else
                 {
                     selectedTmpAtom = i;
-                    if (elementsList[i].hasCustomColor())
-                        tmpAtom.reset(new Atom(elementsList[i].name(),
-                                               elementsList[i].symbol(),
-                                               elementsList[i].color()));
-                    else
-                        tmpAtom.reset(
-                            new Atom(elementsList[i].name(), elementsList[i].symbol()));
+                    tmpAtom.reset(new Atom(elementsList[i]));
                 }
             }
         }
