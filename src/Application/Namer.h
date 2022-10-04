@@ -34,21 +34,11 @@ private:
         inline bool isOxygen() { return element == ElementType::Oxygen; }
         inline bool isHydrogen() { return element == ElementType::Hydrogen; }
 
-        std::vector<std::tuple<BondedAtom>> getSingleBonds();
-        std::vector<std::tuple<BondedAtom, BondedAtom>> getDoubleBonds();
-        std::vector<std::tuple<BondedAtom, BondedAtom, BondedAtom>> getTripleBonds();
+        std::vector<SingleAtom*> getSingleBonds();
+        std::vector<SingleAtom*> getDoubleBonds();
+        std::vector<SingleAtom*> getTripleBonds();
 
-        template <ElementType::ElementTypeEnum el>
-        std::vector<SingleAtom*> findAtoms()
-        {
-            std::vector<SingleAtom*> ret;
-            for (auto& ba : bondedAtoms)
-            {
-                if (ba.bondedAtom->element == el && ba.isSameBond == false)
-                    ret.push_back(ba.bondedAtom);
-            }
-            return ret;
-        }
+        std::vector<SingleAtom*> findAtoms(ElementType::ElementTypeEnum el);
 
         std::vector<BondedAtom> getUniqueBonds();
     };
@@ -69,10 +59,32 @@ private:
     };
 
     void sortBonds();
+    bool isConnected();
+
     SingleAtom* findCarbonAtom();
     SingleAtom* findTerminalCarbonAtom(SingleAtom* carbonAtom);
     std::vector<SingleAtom*> findMaxCarbonChain(SingleAtom* carbonAtom);
-    FunctionalGroup findHighestPriorityGroup(const std::vector<SingleAtom*>& chain);
+
+    struct BrokenSubstituents
+    {
+        FunctionalGroup group;
+        std::vector<std::pair<SingleAtom*, int>> substituents;
+    };
+
+    BrokenSubstituents findAndBreakHighestPriorityGroup(const std::vector<SingleAtom*>& chain);
+    bool contains(const std::vector<SingleAtom*> atoms, ElementType::ElementTypeEnum el);
+
+    std::pair<bool, BrokenSubstituents> findCARBOXYLIC_ACID(const std::vector<SingleAtom*>& chain);
+    std::pair<bool, BrokenSubstituents> findESTER(const std::vector<SingleAtom*>& chain);
+    std::pair<bool, BrokenSubstituents> findAMIDE(const std::vector<SingleAtom*>& chain);
+    std::pair<bool, BrokenSubstituents> findNITRILE(const std::vector<SingleAtom*>& chain);
+    std::pair<bool, BrokenSubstituents> findALDEHYDE(const std::vector<SingleAtom*>& chain);
+    std::pair<bool, BrokenSubstituents> findKETONE(const std::vector<SingleAtom*>& chain);
+    std::pair<bool, BrokenSubstituents> findALCOHOL(const std::vector<SingleAtom*>& chain);
+    std::pair<bool, BrokenSubstituents> findAMINE(const std::vector<SingleAtom*>& chain);
+    std::pair<bool, BrokenSubstituents> findALKYNE(const std::vector<SingleAtom*>& chain);
+    std::pair<bool, BrokenSubstituents> findALKENE(const std::vector<SingleAtom*>& chain);
+    std::pair<bool, BrokenSubstituents> findALKANE(const std::vector<SingleAtom*>& chain);
 
     std::string nameOrganic(SingleAtom* carbonAtom);
     std::string nameInorganic();
@@ -81,7 +93,6 @@ private:
     std::string namePrefix(FunctionalGroup group);
     std::string nameSuffix(FunctionalGroup group);
     std::string join(const std::string& a, const std::string& b);
-
 
 private:
     std::unordered_map<const Atom*, SingleAtom*> atomMapping;

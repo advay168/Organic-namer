@@ -1,5 +1,6 @@
 #include "Namer.h"
 #include <functional>
+#include <glm/gtc/constants.hpp>
 
 Namer::Namer(const Scene& scene)
 {
@@ -30,6 +31,8 @@ Namer::Namer(const Scene& scene)
             throw std::runtime_error("Atom does not have 4 bonds.");
     }
     sortBonds();
+    if (!isConnected())
+        throw std::runtime_error("All atoms are not connected");
 }
 
 std::string Namer::getName()
@@ -78,52 +81,87 @@ void Namer::sortBonds()
     }
 }
 
-std::vector<std::tuple<Namer::SingleAtom::BondedAtom>> Namer::SingleAtom::getSingleBonds()
+bool Namer::isConnected()
+{
+    if (atomsList.empty())
+        return true;
+    for (auto& atomPtr : atomsList)
+        atomPtr->visited = false;
+    std::function<void(SingleAtom*)> helper = [&helper](SingleAtom* atom)
+    {
+        atom->visited = true;
+        for (SingleAtom::BondedAtom ba : atom->bondedAtoms)
+        {
+            if (!ba.bondedAtom->visited)
+                helper(ba.bondedAtom);
+        }
+    };
+    SingleAtom* initial = atomsList[0].get();
+    helper(initial);
+    for (auto& atomPtr : atomsList)
+    {
+        if (!atomPtr->visited)
+            return false;
+    }
+    return true;
+}
+
+std::vector<Namer::SingleAtom*> Namer::SingleAtom::getSingleBonds()
 {
     auto a = bondedAtoms[0];
     auto b = bondedAtoms[1];
     auto c = bondedAtoms[2];
     auto d = bondedAtoms[3];
-    std::vector<std::tuple<BondedAtom>> result;
+    std::vector<SingleAtom*> result;
     if (!b.isSameBond) // X Y _ _
-        result.push_back({ a });
+        result.push_back(a.bondedAtom);
     if (!b.isSameBond && !c.isSameBond) // X Y Z _
-        result.push_back({ b });
+        result.push_back(b.bondedAtom);
     if (!c.isSameBond && !d.isSameBond) // _ X Y Z
-        result.push_back({ c });
+        result.push_back(c.bondedAtom);
     if (!d.isSameBond) // _ _ X Y
-        result.push_back({ d });
+        result.push_back(d.bondedAtom);
     return result;
 }
 
-std::vector<std::tuple<Namer::SingleAtom::BondedAtom, Namer::SingleAtom::BondedAtom>> Namer::SingleAtom::getDoubleBonds()
+std::vector<Namer::SingleAtom*> Namer::SingleAtom::getDoubleBonds()
 {
     auto a = bondedAtoms[0];
     auto b = bondedAtoms[1];
     auto c = bondedAtoms[2];
     auto d = bondedAtoms[3];
-    std::vector<std::tuple<BondedAtom, BondedAtom>> result;
+    std::vector<SingleAtom*> result;
     if (b.isSameBond && !c.isSameBond) // X X Y _
-        result.push_back({ a, b });
+        result.push_back(a.bondedAtom);
     if (!b.isSameBond && c.isSameBond && !d.isSameBond) // X Y Y Z
-        result.push_back({ b, c });
+        result.push_back(b.bondedAtom);
     if (!c.isSameBond && d.isSameBond) // _ X Y Y
-        result.push_back({ c, d });
+        result.push_back(c.bondedAtom);
     return result;
 }
 
-std::vector<std::tuple<Namer::SingleAtom::BondedAtom, Namer::SingleAtom::BondedAtom, Namer::SingleAtom::BondedAtom>> Namer::SingleAtom::getTripleBonds()
+std::vector<Namer::SingleAtom*> Namer::SingleAtom::getTripleBonds()
 {
     auto a = bondedAtoms[0];
     auto b = bondedAtoms[1];
     auto c = bondedAtoms[2];
     auto d = bondedAtoms[3];
-    std::vector<std::tuple<BondedAtom, BondedAtom, BondedAtom>> result;
+    std::vector<SingleAtom*> result;
     if (b.isSameBond && c.isSameBond && !d.isSameBond)
-        result.push_back({ a, b, c });
+        result.push_back(a.bondedAtom);
     if (!b.isSameBond && c.isSameBond && d.isSameBond)
-        result.push_back({ b, c, d });
+        result.push_back(b.bondedAtom);
     return result;
+}
+std::vector<Namer::SingleAtom*> Namer::SingleAtom::findAtoms(ElementType::ElementTypeEnum el)
+{
+    std::vector<SingleAtom*> ret;
+    for (auto& ba : bondedAtoms)
+    {
+        if (ba.bondedAtom->element == el)
+            ret.push_back(ba.bondedAtom);
+    }
+    return ret;
 }
 
 std::vector<Namer::SingleAtom::BondedAtom> Namer::SingleAtom::getUniqueBonds()
@@ -175,7 +213,7 @@ std::vector<Namer::SingleAtom*> Namer::findMaxCarbonChain(SingleAtom* carbonAtom
     std::function<ret_t(SingleAtom*)> helper = [&helper](SingleAtom* carbonAtom) -> ret_t
     {
         carbonAtom->visited = true;
-        auto carbs = carbonAtom->findAtoms<ElementType::Carbon>();
+        auto carbs = carbonAtom->findAtoms(ElementType::Carbon);
         uint32_t maxLength = 0;
         ret_t ret;
         for (auto atom : carbs)
@@ -198,12 +236,112 @@ std::vector<Namer::SingleAtom*> Namer::findMaxCarbonChain(SingleAtom* carbonAtom
     return path;
 }
 
-Namer::FunctionalGroup Namer::findHighestPriorityGroup(const std::vector<SingleAtom*>& chain)
+Namer::BrokenSubstituents Namer::findAndBreakHighestPriorityGroup(const std::vector<SingleAtom*>& chain)
 {
+
     for (SingleAtom* atom : chain)
     {
+        assert(atom->isCarbon());
     }
-    return FunctionalGroup::ALKANE;
+    bool found;
+    BrokenSubstituents ret;
+    std::tie(found, ret) = findCARBOXYLIC_ACID(chain);
+    if (found)
+        return ret;
+    std::tie(found, ret) = findESTER(chain);
+    if (found)
+        return ret;
+    std::tie(found, ret) = findAMIDE(chain);
+    if (found)
+        return ret;
+    std::tie(found, ret) = findNITRILE(chain);
+    if (found)
+        return ret;
+    std::tie(found, ret) = findALDEHYDE(chain);
+    if (found)
+        return ret;
+    std::tie(found, ret) = findKETONE(chain);
+    if (found)
+        return ret;
+    std::tie(found, ret) = findALCOHOL(chain);
+    if (found)
+        return ret;
+    std::tie(found, ret) = findAMINE(chain);
+    if (found)
+        return ret;
+    std::tie(found, ret) = findALKYNE(chain);
+    if (found)
+        return ret;
+    std::tie(found, ret) = findALKENE(chain);
+    if (found)
+        return ret;
+    std::tie(found, ret) = findALKANE(chain);
+    return ret;
+}
+
+bool Namer::contains(const std::vector<SingleAtom*> atoms, ElementType::ElementTypeEnum el)
+{
+    for (auto atom : atoms)
+    {
+        if (atom->element == el)
+            return true;
+    }
+    return false;
+}
+
+std::pair<bool, Namer::BrokenSubstituents> Namer::findCARBOXYLIC_ACID(const std::vector<SingleAtom*>& chain)
+{
+    return { true, { FunctionalGroup::CARBOXYLIC_ACID, {} } };
+}
+
+std::pair<bool, Namer::BrokenSubstituents> Namer::findESTER(const std::vector<SingleAtom*>& chain)
+{
+    return { false, { FunctionalGroup::ESTER, {} } };
+}
+
+std::pair<bool, Namer::BrokenSubstituents> Namer::findAMIDE(const std::vector<SingleAtom*>& chain)
+{
+    return { false, { FunctionalGroup::AMIDE, {} } };
+}
+
+std::pair<bool, Namer::BrokenSubstituents> Namer::findNITRILE(const std::vector<SingleAtom*>& chain)
+{
+    return { false, { FunctionalGroup::NITRILE, {} } };
+}
+
+std::pair<bool, Namer::BrokenSubstituents> Namer::findALDEHYDE(const std::vector<SingleAtom*>& chain)
+{
+    return { false, { FunctionalGroup::ALDEHYDE, {} } };
+}
+
+std::pair<bool, Namer::BrokenSubstituents> Namer::findKETONE(const std::vector<SingleAtom*>& chain)
+{
+    return { false, { FunctionalGroup::KETONE, {} } };
+}
+
+std::pair<bool, Namer::BrokenSubstituents> Namer::findALCOHOL(const std::vector<SingleAtom*>& chain)
+{
+    return { false, { FunctionalGroup::ALCOHOL, {} } };
+}
+
+std::pair<bool, Namer::BrokenSubstituents> Namer::findAMINE(const std::vector<SingleAtom*>& chain)
+{
+    return { false, { FunctionalGroup::AMINE, {} } };
+}
+
+std::pair<bool, Namer::BrokenSubstituents> Namer::findALKYNE(const std::vector<SingleAtom*>& chain)
+{
+    return { false, { FunctionalGroup::ALKYNE, {} } };
+}
+
+std::pair<bool, Namer::BrokenSubstituents> Namer::findALKENE(const std::vector<SingleAtom*>& chain)
+{
+    return { true, { FunctionalGroup::ALKENE, {} } };
+}
+
+std::pair<bool, Namer::BrokenSubstituents> Namer::findALKANE(const std::vector<SingleAtom*>& chain)
+{
+    return { true, { FunctionalGroup::ALKANE, {} } };
 }
 
 std::string Namer::nameOrganic(SingleAtom* carbonAtom)
@@ -213,7 +351,7 @@ std::string Namer::nameOrganic(SingleAtom* carbonAtom)
         ((Atom*)atom->correspondent)->color = glm::vec3(1.0f);
     int size = path.size();
     std::string prefix = namePrefix(size);
-    FunctionalGroup group = findHighestPriorityGroup(path);
+    auto [group, substituents] = findAndBreakHighestPriorityGroup(path);
 
     return join(prefix, nameSuffix(group));
 }
@@ -257,25 +395,25 @@ std::string Namer::nameSuffix(FunctionalGroup group)
     switch (group)
     {
     case FunctionalGroup::CARBOXYLIC_ACID:
-        return "";
+        return "noic acid";
     case FunctionalGroup::ESTER:
-        return "";
+        return "oate";
     case FunctionalGroup::AMIDE:
-        return "";
+        return "amide";
     case FunctionalGroup::NITRILE:
-        return "";
+        return "nitrile";
     case FunctionalGroup::ALDEHYDE:
-        return "";
+        return "al";
     case FunctionalGroup::KETONE:
-        return "";
+        return "one";
     case FunctionalGroup::ALCOHOL:
-        return "";
+        return "ol";
     case FunctionalGroup::AMINE:
-        return "";
+        return "amine";
     case FunctionalGroup::ALKYNE:
-        return "";
+        return "yne";
     case FunctionalGroup::ALKENE:
-        return "";
+        return "ene";
     case FunctionalGroup::ALKANE:
         return "ane";
     }
@@ -290,7 +428,7 @@ std::string Namer::namePrefix(FunctionalGroup group)
     case FunctionalGroup::ESTER:
         return "";
     case FunctionalGroup::AMIDE:
-        return "";
+        return "amido";
     case FunctionalGroup::NITRILE:
         return "";
     case FunctionalGroup::ALDEHYDE:
@@ -298,15 +436,15 @@ std::string Namer::namePrefix(FunctionalGroup group)
     case FunctionalGroup::KETONE:
         return "";
     case FunctionalGroup::ALCOHOL:
-        return "";
+        return "hydroxy";
     case FunctionalGroup::AMINE:
-        return "";
+        return "amino";
     case FunctionalGroup::ALKYNE:
         return "";
     case FunctionalGroup::ALKENE:
         return "";
     case FunctionalGroup::ALKANE:
-        return "";
+        return "yl";
     }
 }
 
