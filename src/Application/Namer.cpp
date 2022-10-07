@@ -1,4 +1,5 @@
 #include "Namer.h"
+#include <array>
 #include <functional>
 #include <glm/gtc/constants.hpp>
 
@@ -11,13 +12,13 @@ Namer::Namer(const Scene& scene)
         atomMapping[&atom] = atomsList.back().get();
     }
 
-    for (auto [a, b, count] : scene.bonds)
+    for (auto& [a, b, count] : scene.bonds)
     {
         auto atomA = atomMapping[a];
         auto atomB = atomMapping[b];
         atomA->bondedAtoms.push_back({ atomB, false });
         atomB->bondedAtoms.push_back({ atomA, false });
-        for (count--; count > 0; count--)
+        for (uint8_t temp = count - 1; temp > 0; temp--)
         {
             atomA->bondedAtoms.push_back({ atomB, true });
             atomB->bondedAtoms.push_back({ atomA, true });
@@ -26,9 +27,13 @@ Namer::Namer(const Scene& scene)
     for (auto& atom : atomsList)
     {
         if (atom->isHydrogen() && atom->bondedAtoms.size() != 1)
-            throw std::runtime_error("Hydrogen atom does not have 1 bond.");
-        if (!atom->isHydrogen() && atom->bondedAtoms.size() != 4)
-            throw std::runtime_error("Atom does not have 4 bonds.");
+            throw std::runtime_error("Hydrogen atom does not have exactly 1 bond.");
+        if (atom->isOxygen() && atom->bondedAtoms.size() != 2)
+            throw std::runtime_error("Oxygen atom does not have exactly 2 bonds.");
+        if (atom->isNitrogen() && atom->bondedAtoms.size() != 3)
+            throw std::runtime_error("Nitrogen atom does not have exactly 3 bonds.");
+        if (atom->isCarbon() && atom->bondedAtoms.size() != 4)
+            throw std::runtime_error("Carbon atom does not have exactly 4 bonds.");
     }
     sortBonds();
     if (!isConnected())
@@ -37,11 +42,22 @@ Namer::Namer(const Scene& scene)
 
 std::string Namer::getName()
 {
-    SingleAtom* carbonAtom = findCarbonAtom();
-    carbonAtom = findTerminalCarbonAtom(carbonAtom);
-    if (carbonAtom)
-        return nameOrganic(carbonAtom);
-    return nameInorganic();
+    std::vector<SingleAtom*> carbonAtoms = findCarbonAtoms();
+    if (carbonAtoms.empty())
+        return nameInorganic();
+    std::vector<Namer::SingleAtom*> maxPath;
+    size_t maxLength = 0;
+    for (SingleAtom* carbonAtom : carbonAtoms)
+    {
+        carbonAtom = findTerminalCarbonAtom(carbonAtom);
+        auto path = findMaxCarbonChain(carbonAtom);
+        if (path.size() > maxLength)
+        {
+            maxLength = path.size();
+            maxPath = path;
+        }
+    }
+    return nameOrganic(maxPath);
 }
 
 void Namer::sortBonds()
@@ -174,14 +190,15 @@ std::vector<Namer::SingleAtom::BondedAtom> Namer::SingleAtom::getUniqueBonds()
     }
     return result;
 }
-Namer::SingleAtom* Namer::findCarbonAtom()
+std::vector<Namer::SingleAtom*> Namer::findCarbonAtoms()
 {
+    std::vector<Namer::SingleAtom*> atoms;
     for (auto& atom : atomsList)
     {
         if (atom->isCarbon())
-            return atom.get();
+            atoms.push_back(atom.get());
     }
-    return nullptr;
+    return atoms;
 }
 
 Namer::SingleAtom* Namer::findTerminalCarbonAtom(SingleAtom* carbonAtom)
@@ -279,7 +296,7 @@ Namer::BrokenSubstituents Namer::findAndBreakHighestPriorityGroup(const std::vec
     return ret;
 }
 
-bool Namer::contains(const std::vector<SingleAtom*> atoms, ElementType::ElementTypeEnum el)
+bool Namer::contains(const std::vector<SingleAtom*>& atoms, ElementType::ElementTypeEnum el)
 {
     for (auto atom : atoms)
     {
@@ -291,7 +308,19 @@ bool Namer::contains(const std::vector<SingleAtom*> atoms, ElementType::ElementT
 
 std::pair<bool, Namer::BrokenSubstituents> Namer::findCARBOXYLIC_ACID(const std::vector<SingleAtom*>& chain)
 {
-    return { true, { FunctionalGroup::CARBOXYLIC_ACID, {} } };
+    SingleAtom* AcidicCarbon = nullptr;
+    for (auto atom : chain)
+    {
+        std::vector<SingleAtom*> oxygens = atom->findAtoms(ElementType::Oxygen);
+        if (oxygens.size() != 3)
+            continue;
+        auto [a, b, c] = shatter<3>(oxygens);
+        if (a != b && b != c)
+            continue;
+        if (atom->bondedAtoms[3].bondedAtom->isHydrogen())
+            AcidicCarbon = atom;
+    }
+    return { bool(AcidicCarbon), { FunctionalGroup::CARBOXYLIC_ACID, {} } };
 }
 
 std::pair<bool, Namer::BrokenSubstituents> Namer::findESTER(const std::vector<SingleAtom*>& chain)
@@ -336,7 +365,14 @@ std::pair<bool, Namer::BrokenSubstituents> Namer::findALKYNE(const std::vector<S
 
 std::pair<bool, Namer::BrokenSubstituents> Namer::findALKENE(const std::vector<SingleAtom*>& chain)
 {
-    return { true, { FunctionalGroup::ALKENE, {} } };
+    SingleAtom* doubleCarbon = nullptr;
+    for (auto atom : chain)
+    {
+        std::vector<SingleAtom*> doubles = atom->getDoubleBonds();
+        if (contains(doubles, ElementType::Carbon) && contains(chain, ElementType::Carbon))
+            doubleCarbon = atom;
+    }
+    return { bool(doubleCarbon), { FunctionalGroup::ALKENE, {} } };
 }
 
 std::pair<bool, Namer::BrokenSubstituents> Namer::findALKANE(const std::vector<SingleAtom*>& chain)
@@ -344,14 +380,13 @@ std::pair<bool, Namer::BrokenSubstituents> Namer::findALKANE(const std::vector<S
     return { true, { FunctionalGroup::ALKANE, {} } };
 }
 
-std::string Namer::nameOrganic(SingleAtom* carbonAtom)
+std::string Namer::nameOrganic(std::vector<Namer::SingleAtom*>& chain)
 {
-    auto path = findMaxCarbonChain(carbonAtom);
-    for (SingleAtom* atom : path)
+    for (SingleAtom* atom : chain)
         ((Atom*)atom->correspondent)->color = glm::vec3(1.0f);
-    int size = path.size();
+    int size = chain.size();
     std::string prefix = namePrefix(size);
-    auto [group, substituents] = findAndBreakHighestPriorityGroup(path);
+    auto [group, substituents] = findAndBreakHighestPriorityGroup(chain);
 
     return join(prefix, nameSuffix(group));
 }

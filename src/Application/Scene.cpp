@@ -6,7 +6,9 @@ void Scene::deserialize(std::istream& stream)
     while (stream.peek() != '$')
     {
         ElementType el;
-        stream >> (uint16_t&)el.elementType;
+        uint16_t temp;
+        stream >> temp;
+        el.elementType = (ElementType::ElementTypeEnum) temp;
 
         float px, py;
         stream >> px >> py;

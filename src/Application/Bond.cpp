@@ -20,6 +20,7 @@ Bond::Bond(Atom* a, Atom* b)
 Bond::Bond(const Bond& other)
     : a(other.a)
     , b(other.b)
+    , count(other.count)
 {
     a->bonds.push_back(this);
     b->bonds.push_back(this);

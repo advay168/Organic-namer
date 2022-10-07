@@ -11,7 +11,7 @@ PhysicsFormatter::PhysicsFormatter(Scene& scene)
         // return a < b
         return glm::acos(a.x) < glm::acos(b.x);
     };
-    for (uint8_t n = 0; n < MAX_BONDS; n++)
+    for (uint8_t n = 1; n < MAX_BONDS; n++)
     {
         for (float theta = 0.0f; theta < TWO_PI; theta += 0.005f)
         {

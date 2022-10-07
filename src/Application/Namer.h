@@ -61,7 +61,7 @@ private:
     void sortBonds();
     bool isConnected();
 
-    SingleAtom* findCarbonAtom();
+    std::vector<SingleAtom*> findCarbonAtoms();
     SingleAtom* findTerminalCarbonAtom(SingleAtom* carbonAtom);
     std::vector<SingleAtom*> findMaxCarbonChain(SingleAtom* carbonAtom);
 
@@ -72,7 +72,7 @@ private:
     };
 
     BrokenSubstituents findAndBreakHighestPriorityGroup(const std::vector<SingleAtom*>& chain);
-    bool contains(const std::vector<SingleAtom*> atoms, ElementType::ElementTypeEnum el);
+    bool contains(const std::vector<SingleAtom*>& atoms, ElementType::ElementTypeEnum el);
 
     std::pair<bool, BrokenSubstituents> findCARBOXYLIC_ACID(const std::vector<SingleAtom*>& chain);
     std::pair<bool, BrokenSubstituents> findESTER(const std::vector<SingleAtom*>& chain);
@@ -86,13 +86,21 @@ private:
     std::pair<bool, BrokenSubstituents> findALKENE(const std::vector<SingleAtom*>& chain);
     std::pair<bool, BrokenSubstituents> findALKANE(const std::vector<SingleAtom*>& chain);
 
-    std::string nameOrganic(SingleAtom* carbonAtom);
+    std::string nameOrganic(std::vector<Namer::SingleAtom*>& chain);
     std::string nameInorganic();
 
     std::string namePrefix(int n);
     std::string namePrefix(FunctionalGroup group);
     std::string nameSuffix(FunctionalGroup group);
     std::string join(const std::string& a, const std::string& b);
+
+    template <size_t n, typename T>
+    std::array<T, n> shatter(std::vector<T>& vec)
+    {
+        std::array<T, n> arr;
+        std::copy(arr.begin(), arr.begin() + n, vec.begin());
+        return arr;
+    }
 
 private:
     std::unordered_map<const Atom*, SingleAtom*> atomMapping;
