@@ -3,6 +3,14 @@
 #include <functional>
 #include <glm/gtc/constants.hpp>
 
+template <size_t n, typename T>
+std::array<T, n> shatter(std::vector<T>& vec)
+{
+    std::array<T, n> arr;
+    std::copy(arr.begin(), arr.begin() + n, vec.begin());
+    return arr;
+}
+
 Namer::Namer(const Scene& scene)
 {
     for (const Atom& atom : scene.atoms)
@@ -45,7 +53,7 @@ std::string Namer::getName()
     std::vector<SingleAtom*> carbonAtoms = findCarbonAtoms();
     if (carbonAtoms.empty())
         return nameInorganic();
-    std::vector<Namer::SingleAtom*> maxPath;
+    std::vector<SingleAtom*> maxPath;
     size_t maxLength = 0;
     for (SingleAtom* carbonAtom : carbonAtoms)
     {
@@ -66,32 +74,14 @@ void Namer::sortBonds()
     {
         auto copy = atom->bondedAtoms;
         atom->bondedAtoms.clear();
-        for (SingleAtom::BondedAtom ba : copy)
+        for (ElementType el : { ElementType::Carbon, ElementType::Nitrogen, ElementType::Oxygen, ElementType::Hydrogen })
         {
-            if (ba.bondedAtom->element == ElementType::Carbon)
+            for (SingleAtom::BondedAtom ba : copy)
             {
-                atom->bondedAtoms.push_back(ba);
-            }
-        }
-        for (SingleAtom::BondedAtom ba : copy)
-        {
-            if (ba.bondedAtom->element == ElementType::Nitrogen)
-            {
-                atom->bondedAtoms.push_back(ba);
-            }
-        }
-        for (SingleAtom::BondedAtom ba : copy)
-        {
-            if (ba.bondedAtom->element == ElementType::Oxygen)
-            {
-                atom->bondedAtoms.push_back(ba);
-            }
-        }
-        for (SingleAtom::BondedAtom ba : copy)
-        {
-            if (ba.bondedAtom->element == ElementType::Hydrogen)
-            {
-                atom->bondedAtoms.push_back(ba);
+                if (ba.bondedAtom->element == el)
+                {
+                    atom->bondedAtoms.push_back(ba);
+                }
             }
         }
     }
@@ -122,77 +112,9 @@ bool Namer::isConnected()
     return true;
 }
 
-std::vector<Namer::SingleAtom*> Namer::SingleAtom::getSingleBonds()
+std::vector<SingleAtom*> Namer::findCarbonAtoms()
 {
-    auto a = bondedAtoms[0];
-    auto b = bondedAtoms[1];
-    auto c = bondedAtoms[2];
-    auto d = bondedAtoms[3];
-    std::vector<SingleAtom*> result;
-    if (!b.isSameBond) // X Y _ _
-        result.push_back(a.bondedAtom);
-    if (!b.isSameBond && !c.isSameBond) // X Y Z _
-        result.push_back(b.bondedAtom);
-    if (!c.isSameBond && !d.isSameBond) // _ X Y Z
-        result.push_back(c.bondedAtom);
-    if (!d.isSameBond) // _ _ X Y
-        result.push_back(d.bondedAtom);
-    return result;
-}
-
-std::vector<Namer::SingleAtom*> Namer::SingleAtom::getDoubleBonds()
-{
-    auto a = bondedAtoms[0];
-    auto b = bondedAtoms[1];
-    auto c = bondedAtoms[2];
-    auto d = bondedAtoms[3];
-    std::vector<SingleAtom*> result;
-    if (b.isSameBond && !c.isSameBond) // X X Y _
-        result.push_back(a.bondedAtom);
-    if (!b.isSameBond && c.isSameBond && !d.isSameBond) // X Y Y Z
-        result.push_back(b.bondedAtom);
-    if (!c.isSameBond && d.isSameBond) // _ X Y Y
-        result.push_back(c.bondedAtom);
-    return result;
-}
-
-std::vector<Namer::SingleAtom*> Namer::SingleAtom::getTripleBonds()
-{
-    auto a = bondedAtoms[0];
-    auto b = bondedAtoms[1];
-    auto c = bondedAtoms[2];
-    auto d = bondedAtoms[3];
-    std::vector<SingleAtom*> result;
-    if (b.isSameBond && c.isSameBond && !d.isSameBond)
-        result.push_back(a.bondedAtom);
-    if (!b.isSameBond && c.isSameBond && d.isSameBond)
-        result.push_back(b.bondedAtom);
-    return result;
-}
-std::vector<Namer::SingleAtom*> Namer::SingleAtom::findAtoms(ElementType::ElementTypeEnum el)
-{
-    std::vector<SingleAtom*> ret;
-    for (auto& ba : bondedAtoms)
-    {
-        if (ba.bondedAtom->element == el)
-            ret.push_back(ba.bondedAtom);
-    }
-    return ret;
-}
-
-std::vector<Namer::SingleAtom::BondedAtom> Namer::SingleAtom::getUniqueBonds()
-{
-    std::vector<BondedAtom> result;
-    for (auto& ba : bondedAtoms)
-    {
-        if (!ba.isSameBond)
-            result.push_back(ba);
-    }
-    return result;
-}
-std::vector<Namer::SingleAtom*> Namer::findCarbonAtoms()
-{
-    std::vector<Namer::SingleAtom*> atoms;
+    std::vector<SingleAtom*> atoms;
     for (auto& atom : atomsList)
     {
         if (atom->isCarbon())
@@ -201,7 +123,7 @@ std::vector<Namer::SingleAtom*> Namer::findCarbonAtoms()
     return atoms;
 }
 
-Namer::SingleAtom* Namer::findTerminalCarbonAtom(SingleAtom* carbonAtom)
+SingleAtom* Namer::findTerminalCarbonAtom(SingleAtom* carbonAtom)
 {
     for (auto& atom : atomsList)
     {
@@ -220,13 +142,13 @@ Namer::SingleAtom* Namer::findTerminalCarbonAtom(SingleAtom* carbonAtom)
     return helper(carbonAtom);
 }
 
-std::vector<Namer::SingleAtom*> Namer::findMaxCarbonChain(SingleAtom* carbonAtom)
+std::vector<SingleAtom*> Namer::findMaxCarbonChain(SingleAtom* carbonAtom)
 {
     for (auto& atom : atomsList)
     {
         atom->visited = false;
     }
-    using ret_t = std::vector<Namer::SingleAtom*>;
+    using ret_t = std::vector<SingleAtom*>;
     std::function<ret_t(SingleAtom*)> helper = [&helper](SingleAtom* carbonAtom) -> ret_t
     {
         carbonAtom->visited = true;
@@ -306,6 +228,15 @@ bool Namer::contains(const std::vector<SingleAtom*>& atoms, ElementType::Element
     return false;
 }
 
+bool Namer::contains(const std::vector<SingleAtom*>& atoms, SingleAtom* atom)
+{
+    return std::find(
+               atoms.begin(),
+               atoms.end(),
+               atom)
+        != atoms.end();
+}
+
 std::pair<bool, Namer::BrokenSubstituents> Namer::findCARBOXYLIC_ACID(const std::vector<SingleAtom*>& chain)
 {
     SingleAtom* AcidicCarbon = nullptr;
@@ -360,7 +291,14 @@ std::pair<bool, Namer::BrokenSubstituents> Namer::findAMINE(const std::vector<Si
 
 std::pair<bool, Namer::BrokenSubstituents> Namer::findALKYNE(const std::vector<SingleAtom*>& chain)
 {
-    return { false, { FunctionalGroup::ALKYNE, {} } };
+    SingleAtom* tripleCarbon = nullptr;
+    for (auto atom : chain)
+    {
+        std::vector<SingleAtom*> doubles = atom->getTripleBonds();
+        if (contains(doubles, ElementType::Carbon) && contains(chain, ElementType::Carbon))
+            tripleCarbon = atom;
+    }
+    return { bool(tripleCarbon), { FunctionalGroup::ALKYNE, {} } };
 }
 
 std::pair<bool, Namer::BrokenSubstituents> Namer::findALKENE(const std::vector<SingleAtom*>& chain)
@@ -377,10 +315,24 @@ std::pair<bool, Namer::BrokenSubstituents> Namer::findALKENE(const std::vector<S
 
 std::pair<bool, Namer::BrokenSubstituents> Namer::findALKANE(const std::vector<SingleAtom*>& chain)
 {
-    return { true, { FunctionalGroup::ALKANE, {} } };
+    BrokenSubstituents brokenSubstituents { FunctionalGroup::ALKENE, {} };
+    int i = 0;
+    for (auto atom : chain)
+    {
+        std::vector<SingleAtom*> unique = atom->getUniqueBonds();
+        for (auto a : unique)
+        {
+            if (contains(chain, a))
+                continue;
+            a->remove(atom);
+            brokenSubstituents.substituents.push_back({ a, i });
+        }
+        i++;
+    }
+    return { true, brokenSubstituents };
 }
 
-std::string Namer::nameOrganic(std::vector<Namer::SingleAtom*>& chain)
+std::string Namer::nameOrganic(std::vector<SingleAtom*>& chain)
 {
     for (SingleAtom* atom : chain)
         ((Atom*)atom->correspondent)->color = glm::vec3(1.0f);
@@ -394,123 +346,4 @@ std::string Namer::nameOrganic(std::vector<Namer::SingleAtom*>& chain)
 std::string Namer::nameInorganic()
 {
     return "CO2";
-}
-
-std::string Namer::namePrefix(int n)
-{
-    switch (n)
-    {
-    case 1:
-        return "metha";
-    case 2:
-        return "etha";
-    case 3:
-        return "propa";
-    case 4:
-        return "buta";
-    case 5:
-        return "penta";
-    case 6:
-        return "hexa";
-    case 7:
-        return "hepta";
-    case 8:
-        return "octa";
-    case 9:
-        return "nona";
-    case 10:
-        return "deca";
-    default:
-        throw std::runtime_error("Don't know prefix of large chain");
-    }
-}
-
-std::string Namer::nameSuffix(FunctionalGroup group)
-{
-    switch (group)
-    {
-    case FunctionalGroup::CARBOXYLIC_ACID:
-        return "noic acid";
-    case FunctionalGroup::ESTER:
-        return "oate";
-    case FunctionalGroup::AMIDE:
-        return "amide";
-    case FunctionalGroup::NITRILE:
-        return "nitrile";
-    case FunctionalGroup::ALDEHYDE:
-        return "al";
-    case FunctionalGroup::KETONE:
-        return "one";
-    case FunctionalGroup::ALCOHOL:
-        return "ol";
-    case FunctionalGroup::AMINE:
-        return "amine";
-    case FunctionalGroup::ALKYNE:
-        return "yne";
-    case FunctionalGroup::ALKENE:
-        return "ene";
-    case FunctionalGroup::ALKANE:
-        return "ane";
-    }
-}
-
-std::string Namer::namePrefix(FunctionalGroup group)
-{
-    switch (group)
-    {
-    case FunctionalGroup::CARBOXYLIC_ACID:
-        return "";
-    case FunctionalGroup::ESTER:
-        return "";
-    case FunctionalGroup::AMIDE:
-        return "amido";
-    case FunctionalGroup::NITRILE:
-        return "";
-    case FunctionalGroup::ALDEHYDE:
-        return "";
-    case FunctionalGroup::KETONE:
-        return "";
-    case FunctionalGroup::ALCOHOL:
-        return "hydroxy";
-    case FunctionalGroup::AMINE:
-        return "amino";
-    case FunctionalGroup::ALKYNE:
-        return "";
-    case FunctionalGroup::ALKENE:
-        return "";
-    case FunctionalGroup::ALKANE:
-        return "yl";
-    }
-}
-
-std::string Namer::join(const std::string& a, const std::string& b)
-{
-    auto isVowel = [](char c)
-    {
-        switch (c)
-        {
-        case 'a':
-        case 'A':
-        case 'e':
-        case 'E':
-        case 'i':
-        case 'I':
-        case 'o':
-        case 'O':
-        case 'u':
-        case 'U':
-        case 'y':
-        case 'Y':
-            return true;
-        default:
-            return false;
-        }
-    };
-    bool aVowel = isVowel(a.back());
-    bool bVowel = isVowel(b.front());
-    if (aVowel && bVowel)
-    {
-        return a.substr(0, a.size() - 1) + b;
-    }
-    return a + b;
 }
