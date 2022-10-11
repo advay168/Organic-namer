@@ -125,6 +125,24 @@ void PhysicsFormatter::exertForce()
     optimiseForce();
 }
 
+void PhysicsFormatter::reArrangeBonds()
+{
+    for (Atom& atom : scene.atoms)
+    {
+        std::sort(atom.bonds.begin(), atom.bonds.end(),
+                  [&atom](Bond* b1, Bond* b2)
+                  {
+                      Atom& a1 = b1->other(atom);
+                      glm::vec2 diff = a1.pos - atom.pos;
+                      float v1 = glm::atan(diff.y, diff.x);
+                      Atom& a2 = b2->other(atom);
+                      diff = a2.pos - atom.pos;
+                      float v2 = glm::atan(diff.y, diff.x);
+                      return v1 < v2;
+                  });
+    }
+}
+
 void PhysicsFormatter::optimiseForce()
 {
     if (scene.atoms.empty())

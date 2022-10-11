@@ -259,7 +259,8 @@ void Application::imGuiFrame()
             }
         }
 
-        ImGui::Checkbox("Simulation", &simulating);
+        if(ImGui::Checkbox("Simulation", &simulating) && simulating)
+          physicsFormatter.reArrangeBonds();
 
         displayDeletionOptions();
 
@@ -387,6 +388,8 @@ void Application::createBond(Atom* a, Atom* b)
         }
     }
     currentScene.bonds.push_back(tmpBond);
+    if(simulating)
+      physicsFormatter.reArrangeBonds();
 }
 
 void Application::deleteAtom(Atom* atomToDel)

@@ -14,6 +14,8 @@ public:
 
   void draw();
 
+  void reArrangeBonds();
+
 private:
   using PositionsArray_t = std::array<glm::vec2, MAX_BONDS>;
 
