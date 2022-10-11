@@ -175,6 +175,14 @@ std::vector<SingleAtom*> Namer::findMaxCarbonChain(SingleAtom* carbonAtom)
     return path;
 }
 
+SingleAtom* Namer::findAtom(const std::vector<SingleAtom*>& atoms, ElementType::ElementTypeEnum el)
+{
+    for (auto& atom : atoms)
+        if (atom->element == el)
+            return atom;
+    return nullptr;
+}
+
 std::pair<int, Namer::BrokenSubstituents> Namer::findAndBreakHighestPriorityGroup(const std::vector<SingleAtom*>& chain)
 {
 
@@ -300,8 +308,8 @@ std::pair<int, Namer::BrokenSubstituents> Namer::findALKYNE(const std::vector<Si
     SingleAtom* tripleCarbon = nullptr;
     for (auto atom : chain)
     {
-        std::vector<SingleAtom*> doubles = atom->getTripleBonds();
-        if (contains(doubles, ElementType::Carbon) && contains(chain, ElementType::Carbon))
+        std::vector<SingleAtom*> triples = atom->getTripleBonds();
+        if (contains(triples, ElementType::Carbon) && contains(chain, findAtom(triples, ElementType::Carbon)))
             tripleCarbon = atom;
     }
     return { tripleCarbon ? 1 : -1, { FunctionalGroup::ALKYNE, {} } };
@@ -314,14 +322,16 @@ std::pair<int, Namer::BrokenSubstituents> Namer::findALKENE(const std::vector<Si
     {
         auto atom = chain[i];
         std::vector<SingleAtom*> doubles = atom->getDoubleBonds();
-        if (contains(doubles, ElementType::Carbon) && contains(chain, ElementType::Carbon))
+        if (contains(doubles, ElementType::Carbon) && contains(chain, findAtom(doubles, ElementType::Carbon)))
             idx = i;
     }
     BrokenSubstituents brokenSubstituents { FunctionalGroup::ALKENE, {} };
+    if (idx == -1)
+        return { -1, brokenSubstituents };
     size_t l = chain.size();
     int dir = 1;
-    size_t i = 0;
-    size_t end = chain.size();
+    int i = 0;
+    int end = chain.size();
     if (idx > (int)l - idx)
     {
         dir = -1;
@@ -329,20 +339,23 @@ std::pair<int, Namer::BrokenSubstituents> Namer::findALKENE(const std::vector<Si
         end = -1;
         idx = chain.size() - idx - 1;
     }
+    int pos = 0;
     for (; i * dir < end * dir; i += dir)
     {
+        pos++;
         SingleAtom* atom = chain[i];
         std::vector<SingleAtom*> unique = atom->getUniqueBonds();
         for (auto uniqueAtom : unique)
         {
             if (contains(chain, uniqueAtom))
                 continue;
-            uniqueAtom->remove(atom);
-            uniqueAtom->bondedAtoms.push_back({ &sentinelHydrogen, false });
-            brokenSubstituents.substituents.push_back({ uniqueAtom, i + 1 });
+            int count = uniqueAtom->remove(atom);
+            for (int i = 0; i < count; i++)
+                uniqueAtom->bondedAtoms.push_back({ &sentinelHydrogen, false });
+            brokenSubstituents.substituents.push_back({ uniqueAtom, pos });
         }
     }
-    return { idx+ 1, brokenSubstituents };
+    return { idx + 1, brokenSubstituents };
 }
 
 std::pair<int, Namer::BrokenSubstituents> Namer::findALKANE(const std::vector<SingleAtom*>& chain)
@@ -356,8 +369,9 @@ std::pair<int, Namer::BrokenSubstituents> Namer::findALKANE(const std::vector<Si
         {
             if (contains(chain, uniqueAtom))
                 continue;
-            uniqueAtom->remove(atom);
-            uniqueAtom->bondedAtoms.push_back({ &sentinelHydrogen, false });
+            int count = uniqueAtom->remove(atom);
+            for (int i = 0; i < count; i++)
+                uniqueAtom->bondedAtoms.push_back({ &sentinelHydrogen, false });
             brokenSubstituents.substituents.push_back({ uniqueAtom, i + 1 });
         }
     }
@@ -383,7 +397,6 @@ std::string Namer::nameOrganic(std::vector<SingleAtom*>& chain)
             auto [subIdx, subSubs] = findAndBreakHighestPriorityGroup(subChain);
             auto [subGroup, subSubstituents] = subSubs;
             std::string n = namePrefix(subChain.size());
-            std::cout << (int)subGroup;
             name = "-" + std::to_string(index) + "-" + join(n, namePrefix(subGroup)) + name;
         }
     }

@@ -33,5 +33,5 @@ struct SingleAtom
 
     std::vector<SingleAtom*> getUniqueBonds();
 
-    void remove(SingleAtom* toRemove);
+    int remove(SingleAtom* toRemove);
 };

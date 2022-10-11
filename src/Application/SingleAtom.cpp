@@ -69,9 +69,15 @@ std::vector<SingleAtom*> SingleAtom::getUniqueBonds()
     return result;
 }
 
-void SingleAtom::remove(SingleAtom* toRemove)
+int SingleAtom::remove(SingleAtom* toRemove)
 {
+    int count = 0;
+    for (auto [a, x] : bondedAtoms)
+    {
+        count += a == toRemove;
+    }
     bondedAtoms.erase(std::remove_if(bondedAtoms.begin(), bondedAtoms.end(), [&](BondedAtom x)
                                      { return x.bondedAtom == toRemove; }),
                       bondedAtoms.end());
+    return count;
 }

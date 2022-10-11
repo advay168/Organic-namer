@@ -86,9 +86,10 @@ bool PhysicsFormatter::applyForce()
     for (Atom& atom : scene.atoms)
     {
         delta += glm::abs(atom.force);
-        atom.pos += atom.force / 100.0f;
+        atom.pos += atom.force * simulationSpeed;
     }
-    return glm::length(delta) < 2.0f;
+    deltaLength = glm::length(delta);
+    return deltaLength < 2.0f;
 }
 
 void PhysicsFormatter::exertForce()

@@ -22,6 +22,8 @@ private:
     SingleAtom* findTerminalCarbonAtom(SingleAtom* carbonAtom);
     std::vector<SingleAtom*> findMaxCarbonChain(SingleAtom* carbonAtom);
 
+    SingleAtom* findAtom(const std::vector<SingleAtom*>& atoms, ElementType::ElementTypeEnum el);
+
     struct BrokenSubstituents
     {
         FunctionalGroup group;

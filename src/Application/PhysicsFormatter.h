@@ -16,6 +16,9 @@ public:
 
   void reArrangeBonds();
 
+  float deltaLength;
+  float simulationSpeed = 1.5f / 100.0f;
+
 private:
   using PositionsArray_t = std::array<glm::vec2, MAX_BONDS>;
 

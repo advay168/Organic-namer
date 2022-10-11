@@ -259,8 +259,14 @@ void Application::imGuiFrame()
             }
         }
 
-        if(ImGui::Checkbox("Simulation", &simulating) && simulating)
-          physicsFormatter.reArrangeBonds();
+        if (ImGui::Checkbox("Simulation", &simulating) && simulating)
+            physicsFormatter.reArrangeBonds();
+
+        if (simulating)
+        {
+            ImGui::DragFloat("Sensitivity in movement", &physicsFormatter.simulationSpeed, 0.0001f, 0.0f, 5.0f);
+            ImGui::Text("Difference between current and ideal positions:  %f", physicsFormatter.deltaLength);
+        }
 
         displayDeletionOptions();
 
@@ -388,8 +394,8 @@ void Application::createBond(Atom* a, Atom* b)
         }
     }
     currentScene.bonds.push_back(tmpBond);
-    if(simulating)
-      physicsFormatter.reArrangeBonds();
+    if (simulating)
+        physicsFormatter.reArrangeBonds();
 }
 
 void Application::deleteAtom(Atom* atomToDel)

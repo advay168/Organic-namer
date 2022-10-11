@@ -64,25 +64,25 @@ std::string namePrefix(FunctionalGroup group)
     switch (group)
     {
     case FunctionalGroup::CARBOXYLIC_ACID:
-        return "";
+        return "tempacid";
     case FunctionalGroup::ESTER:
-        return "";
+        return "tempester";
     case FunctionalGroup::AMIDE:
         return "amido";
     case FunctionalGroup::NITRILE:
-        return "";
+        return "tempnitrile";
     case FunctionalGroup::ALDEHYDE:
-        return "";
+        return "tempaldehyde";
     case FunctionalGroup::KETONE:
-        return "";
+        return "tempketone";
     case FunctionalGroup::ALCOHOL:
         return "hydroxy";
     case FunctionalGroup::AMINE:
         return "amino";
     case FunctionalGroup::ALKYNE:
-        return "";
+        return "tempalkyne";
     case FunctionalGroup::ALKENE:
-        return "";
+        return "tempalkene";
     case FunctionalGroup::ALKANE:
         return "yl";
     }
