@@ -5,32 +5,33 @@ std::string namePrefix(int n)
     switch (n)
     {
     case 1:
-        return "metha";
+        return "meth";
     case 2:
-        return "etha";
+        return "eth";
     case 3:
-        return "propa";
+        return "prop";
     case 4:
-        return "buta";
+        return "but";
     case 5:
-        return "penta";
+        return "pent";
     case 6:
-        return "hexa";
+        return "hex";
     case 7:
-        return "hepta";
+        return "hept";
     case 8:
-        return "octa";
+        return "oct";
     case 9:
-        return "nona";
+        return "non";
     case 10:
-        return "deca";
+        return "dec";
     default:
         throw std::runtime_error("Don't know prefix of large chain");
     }
 }
 
-std::string nameSuffix(FunctionalGroup group)
+std::string nameSuffix(FunctionalGroup group, int idx)
 {
+    std::string strIdx = std::to_string(idx);
     switch (group)
     {
     case FunctionalGroup::CARBOXYLIC_ACID:
@@ -44,15 +45,15 @@ std::string nameSuffix(FunctionalGroup group)
     case FunctionalGroup::ALDEHYDE:
         return "al";
     case FunctionalGroup::KETONE:
-        return "one";
+        return "-" + strIdx + "-one";
     case FunctionalGroup::ALCOHOL:
-        return "ol";
+        return "-" + strIdx + "-ol";
     case FunctionalGroup::AMINE:
         return "amine";
     case FunctionalGroup::ALKYNE:
-        return "yne";
+        return "-" + strIdx + "-yne";
     case FunctionalGroup::ALKENE:
-        return "ene";
+        return "-" + strIdx + "-ene";
     case FunctionalGroup::ALKANE:
         return "ane";
     }
@@ -110,6 +111,8 @@ std::string join(const std::string& a, const std::string& b)
             return false;
         }
     };
+    if (a == "" || b == "")
+        return a + b;
     bool aVowel = isVowel(a.back());
     bool bVowel = isVowel(b.front());
     if (aVowel && bVowel)

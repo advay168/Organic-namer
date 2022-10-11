@@ -175,47 +175,46 @@ std::vector<SingleAtom*> Namer::findMaxCarbonChain(SingleAtom* carbonAtom)
     return path;
 }
 
-Namer::BrokenSubstituents Namer::findAndBreakHighestPriorityGroup(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findAndBreakHighestPriorityGroup(const std::vector<SingleAtom*>& chain)
 {
 
     for (SingleAtom* atom : chain)
     {
         assert(atom->isCarbon());
     }
-    bool found;
+    int idx;
     BrokenSubstituents ret;
-    std::tie(found, ret) = findCARBOXYLIC_ACID(chain);
-    if (found)
-        return ret;
-    std::tie(found, ret) = findESTER(chain);
-    if (found)
-        return ret;
-    std::tie(found, ret) = findAMIDE(chain);
-    if (found)
-        return ret;
-    std::tie(found, ret) = findNITRILE(chain);
-    if (found)
-        return ret;
-    std::tie(found, ret) = findALDEHYDE(chain);
-    if (found)
-        return ret;
-    std::tie(found, ret) = findKETONE(chain);
-    if (found)
-        return ret;
-    std::tie(found, ret) = findALCOHOL(chain);
-    if (found)
-        return ret;
-    std::tie(found, ret) = findAMINE(chain);
-    if (found)
-        return ret;
-    std::tie(found, ret) = findALKYNE(chain);
-    if (found)
-        return ret;
-    std::tie(found, ret) = findALKENE(chain);
-    if (found)
-        return ret;
-    std::tie(found, ret) = findALKANE(chain);
-    return ret;
+    std::tie(idx, ret) = findCARBOXYLIC_ACID(chain);
+    if (idx != -1)
+        return { idx, ret };
+    std::tie(idx, ret) = findESTER(chain);
+    if (idx != -1)
+        return { idx, ret };
+    std::tie(idx, ret) = findAMIDE(chain);
+    if (idx != -1)
+        return { idx, ret };
+    std::tie(idx, ret) = findNITRILE(chain);
+    if (idx != -1)
+        return { idx, ret };
+    std::tie(idx, ret) = findALDEHYDE(chain);
+    if (idx != -1)
+        return { idx, ret };
+    std::tie(idx, ret) = findKETONE(chain);
+    if (idx != -1)
+        return { idx, ret };
+    std::tie(idx, ret) = findALCOHOL(chain);
+    if (idx != -1)
+        return { idx, ret };
+    std::tie(idx, ret) = findAMINE(chain);
+    if (idx != -1)
+        return { idx, ret };
+    std::tie(idx, ret) = findALKYNE(chain);
+    if (idx != -1)
+        return { idx, ret };
+    std::tie(idx, ret) = findALKENE(chain);
+    if (idx != -1)
+        return { idx, ret };
+    return findALKANE(chain);
 }
 
 bool Namer::contains(const std::vector<SingleAtom*>& atoms, ElementType::ElementTypeEnum el)
@@ -237,7 +236,7 @@ bool Namer::contains(const std::vector<SingleAtom*>& atoms, SingleAtom* atom)
         != atoms.end();
 }
 
-std::pair<bool, Namer::BrokenSubstituents> Namer::findCARBOXYLIC_ACID(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findCARBOXYLIC_ACID(const std::vector<SingleAtom*>& chain)
 {
     SingleAtom* AcidicCarbon = nullptr;
     for (auto atom : chain)
@@ -251,45 +250,52 @@ std::pair<bool, Namer::BrokenSubstituents> Namer::findCARBOXYLIC_ACID(const std:
         if (atom->bondedAtoms[3].bondedAtom->isHydrogen())
             AcidicCarbon = atom;
     }
-    return { bool(AcidicCarbon), { FunctionalGroup::CARBOXYLIC_ACID, {} } };
+    return { bool(AcidicCarbon) ? 1 : -1, { FunctionalGroup::CARBOXYLIC_ACID, {} } };
 }
 
-std::pair<bool, Namer::BrokenSubstituents> Namer::findESTER(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findESTER(const std::vector<SingleAtom*>& chain)
 {
-    return { false, { FunctionalGroup::ESTER, {} } };
+    (void)chain;
+    return { -1, { FunctionalGroup::ESTER, {} } };
 }
 
-std::pair<bool, Namer::BrokenSubstituents> Namer::findAMIDE(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findAMIDE(const std::vector<SingleAtom*>& chain)
 {
-    return { false, { FunctionalGroup::AMIDE, {} } };
+    (void)chain;
+    return { -1, { FunctionalGroup::AMIDE, {} } };
 }
 
-std::pair<bool, Namer::BrokenSubstituents> Namer::findNITRILE(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findNITRILE(const std::vector<SingleAtom*>& chain)
 {
-    return { false, { FunctionalGroup::NITRILE, {} } };
+    (void)chain;
+    return { -1, { FunctionalGroup::NITRILE, {} } };
 }
 
-std::pair<bool, Namer::BrokenSubstituents> Namer::findALDEHYDE(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findALDEHYDE(const std::vector<SingleAtom*>& chain)
 {
-    return { false, { FunctionalGroup::ALDEHYDE, {} } };
+    (void)chain;
+    return { -1, { FunctionalGroup::ALDEHYDE, {} } };
 }
 
-std::pair<bool, Namer::BrokenSubstituents> Namer::findKETONE(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findKETONE(const std::vector<SingleAtom*>& chain)
 {
-    return { false, { FunctionalGroup::KETONE, {} } };
+    (void)chain;
+    return { -1, { FunctionalGroup::KETONE, {} } };
 }
 
-std::pair<bool, Namer::BrokenSubstituents> Namer::findALCOHOL(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findALCOHOL(const std::vector<SingleAtom*>& chain)
 {
-    return { false, { FunctionalGroup::ALCOHOL, {} } };
+    (void)chain;
+    return { -1, { FunctionalGroup::ALCOHOL, {} } };
 }
 
-std::pair<bool, Namer::BrokenSubstituents> Namer::findAMINE(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findAMINE(const std::vector<SingleAtom*>& chain)
 {
-    return { false, { FunctionalGroup::AMINE, {} } };
+    (void)chain;
+    return { -1, { FunctionalGroup::AMINE, {} } };
 }
 
-std::pair<bool, Namer::BrokenSubstituents> Namer::findALKYNE(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findALKYNE(const std::vector<SingleAtom*>& chain)
 {
     SingleAtom* tripleCarbon = nullptr;
     for (auto atom : chain)
@@ -298,36 +304,62 @@ std::pair<bool, Namer::BrokenSubstituents> Namer::findALKYNE(const std::vector<S
         if (contains(doubles, ElementType::Carbon) && contains(chain, ElementType::Carbon))
             tripleCarbon = atom;
     }
-    return { bool(tripleCarbon), { FunctionalGroup::ALKYNE, {} } };
+    return { tripleCarbon ? 1 : -1, { FunctionalGroup::ALKYNE, {} } };
 }
 
-std::pair<bool, Namer::BrokenSubstituents> Namer::findALKENE(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findALKENE(const std::vector<SingleAtom*>& chain)
 {
-    SingleAtom* doubleCarbon = nullptr;
-    for (auto atom : chain)
+    int idx = -1;
+    for (size_t i = 0; i < chain.size(); i++)
     {
+        auto atom = chain[i];
         std::vector<SingleAtom*> doubles = atom->getDoubleBonds();
         if (contains(doubles, ElementType::Carbon) && contains(chain, ElementType::Carbon))
-            doubleCarbon = atom;
+            idx = i;
     }
-    return { bool(doubleCarbon), { FunctionalGroup::ALKENE, {} } };
+    BrokenSubstituents brokenSubstituents { FunctionalGroup::ALKENE, {} };
+    size_t l = chain.size();
+    int dir = 1;
+    size_t i = 0;
+    size_t end = chain.size();
+    if (idx > (int)l - idx)
+    {
+        dir = -1;
+        i = chain.size() - 1;
+        end = -1;
+        idx = chain.size() - idx - 1;
+    }
+    for (; i * dir < end * dir; i += dir)
+    {
+        SingleAtom* atom = chain[i];
+        std::vector<SingleAtom*> unique = atom->getUniqueBonds();
+        for (auto uniqueAtom : unique)
+        {
+            if (contains(chain, uniqueAtom))
+                continue;
+            uniqueAtom->remove(atom);
+            uniqueAtom->bondedAtoms.push_back({ &sentinelHydrogen, false });
+            brokenSubstituents.substituents.push_back({ uniqueAtom, i + 1 });
+        }
+    }
+    return { idx+ 1, brokenSubstituents };
 }
 
-std::pair<bool, Namer::BrokenSubstituents> Namer::findALKANE(const std::vector<SingleAtom*>& chain)
+std::pair<int, Namer::BrokenSubstituents> Namer::findALKANE(const std::vector<SingleAtom*>& chain)
 {
-    BrokenSubstituents brokenSubstituents { FunctionalGroup::ALKENE, {} };
-    int i = 0;
-    for (auto atom : chain)
+    BrokenSubstituents brokenSubstituents { FunctionalGroup::ALKANE, {} };
+    for (size_t i = 0; i < chain.size(); i++)
     {
+        SingleAtom* atom = chain[i];
         std::vector<SingleAtom*> unique = atom->getUniqueBonds();
-        for (auto a : unique)
+        for (auto uniqueAtom : unique)
         {
-            if (contains(chain, a))
+            if (contains(chain, uniqueAtom))
                 continue;
-            a->remove(atom);
-            brokenSubstituents.substituents.push_back({ a, i });
+            uniqueAtom->remove(atom);
+            uniqueAtom->bondedAtoms.push_back({ &sentinelHydrogen, false });
+            brokenSubstituents.substituents.push_back({ uniqueAtom, i + 1 });
         }
-        i++;
     }
     return { true, brokenSubstituents };
 }
@@ -338,9 +370,27 @@ std::string Namer::nameOrganic(std::vector<SingleAtom*>& chain)
         ((Atom*)atom->correspondent)->color = glm::vec3(1.0f);
     int size = chain.size();
     std::string prefix = namePrefix(size);
-    auto [group, substituents] = findAndBreakHighestPriorityGroup(chain);
+    auto [idx, subs] = findAndBreakHighestPriorityGroup(chain);
+    auto [group, substituents] = subs;
+    std::string name = join(prefix, nameSuffix(group, idx));
+    for (auto& [headAtom, index] : substituents)
+    {
+        if (headAtom->isHydrogen())
+            continue;
+        if (headAtom->isCarbon())
+        {
+            std::vector<SingleAtom*> subChain = findMaxCarbonChain(headAtom);
+            auto [subIdx, subSubs] = findAndBreakHighestPriorityGroup(subChain);
+            auto [subGroup, subSubstituents] = subSubs;
+            std::string n = namePrefix(subChain.size());
+            std::cout << (int)subGroup;
+            name = "-" + std::to_string(index) + "-" + join(n, namePrefix(subGroup)) + name;
+        }
+    }
+    if (name[0] == '-')
+        name = name.substr(1);
 
-    return join(prefix, nameSuffix(group));
+    return name;
 }
 
 std::string Namer::nameInorganic()

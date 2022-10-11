@@ -18,5 +18,5 @@ enum class FunctionalGroup : uint8_t
 
 std::string namePrefix(int n);
 std::string namePrefix(FunctionalGroup group);
-std::string nameSuffix(FunctionalGroup group);
+std::string nameSuffix(FunctionalGroup group, int idx);
 std::string join(const std::string& a, const std::string& b);

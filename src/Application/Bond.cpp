@@ -34,25 +34,25 @@ Bond::~Bond()
     aBonds.erase(std::find(aBonds.begin(), aBonds.end(), this));
 }
 
-bool Bond::operator==(Bond& other)
+bool Bond::operator==(Bond& other) const
 {
     if (a == other.a && b == other.b)
         return true;
     return a == other.b && b == other.a;
 }
 
-Atom& Bond::other(Atom& x)
+Atom& Bond::other(Atom& x) const
 {
     return other(&x);
 }
-Atom& Bond::other(Atom* x)
+Atom& Bond::other(Atom* x) const
 {
     if (x == a)
         return *b;
     return *a;
 }
 
-float Bond::length()
+float Bond::length() const
 {
     return (a->pos - b->pos).length();
 }

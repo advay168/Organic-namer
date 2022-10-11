@@ -14,14 +14,14 @@ struct Bond
   Bond& operator=(Bond&) = delete;
   Bond& operator=(Bond&&) = delete;
 
-  bool operator==(Bond& other);
+  bool operator==(Bond& other) const;
 
   void draw();
 
-  Atom& other(Atom& x);
-  Atom& other(Atom* x);
+  Atom& other(Atom& x) const;
+  Atom& other(Atom* x) const;
 
-  float length();
+  float length() const;
 
   Atom *a, *b;
 
