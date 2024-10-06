@@ -40,7 +40,7 @@ private:
 
     std::pair<glm::vec2, glm::vec2> calculateAtomsBoundingBox();
 
-    Atom* findHoveredAtom(); // TODO
+    Atom* findHoveredAtom();
     void bringAtomsIntoView();
     void calcWindowSize();
     void calcCursorPos();
@@ -54,6 +54,7 @@ private:
     float lastFrame = 0.0f;
     float width;
     float height;
+    float scaling;
 
     // fonts
     ImFont* normalFont;

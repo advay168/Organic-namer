@@ -24,8 +24,9 @@ Application::Application(GLFWwindow* window)
 
     ImGuiIO& io = ImGui::GetIO();
     const char* fontFileName = "res/fonts/NotoSansMono_SemiCondensed-Regular.ttf";
-    normalFont = io.Fonts->AddFontFromFileTTF(fontFileName, 18.0f);
-    largeFont = io.Fonts->AddFontFromFileTTF(fontFileName, 30.0f);
+    glfwGetWindowContentScale(window, &scaling, nullptr);
+    normalFont = io.Fonts->AddFontFromFileTTF(fontFileName, 18.0f * scaling);
+    largeFont = io.Fonts->AddFontFromFileTTF(fontFileName, 30.0f * scaling);
 }
 
 void Application::runFrame()
@@ -282,7 +283,7 @@ void Application::imGuiFrame()
 
 void Application::displayZoomOptions()
 {
-    ImGui::SetCursorPos({ width - 30.0f, height - 45.0f });
+    ImGui::SetCursorPos({ width - 30.0f * scaling, height - 45.0f * scaling});
     ImGui::BeginGroup();
     glm::vec2 oldCursorPos = ImGui::GetCursorPos();
     if (ImGui::Button("Home"))
@@ -290,14 +291,14 @@ void Application::displayZoomOptions()
         camera.Home();
     }
     ImGui::SameLine();
-    float HomeWidth = ImGui::GetCursorPos().x - oldCursorPos.x - 4.0f;
+    float HomeWidth = ImGui::GetCursorPos().x - oldCursorPos.x - 4.0f * scaling;
     ImGui::Dummy({});
-    ImGui::Indent((HomeWidth - 20.0f) / 2.0f);
-    if (ImGui::Button("-", { 20.0f, 20.0f }))
+    ImGui::Indent((HomeWidth - 20.0f * scaling) / 2.0f);
+    if (ImGui::Button("-", { 20.0f * scaling, 20.0f *scaling}))
     {
         camera.ZoomOut();
     }
-    if (ImGui::Button("+", { 20.0f, 20.0f }))
+    if (ImGui::Button("+", { 20.0f * scaling, 20.0f *scaling}))
     {
         camera.ZoomIn();
     }
