@@ -59,6 +59,7 @@ jobs:
           path: |
             ${{github.workspace}}/build/Organic-Namer
             ${{github.workspace}}/build/res
+            ${{github.workspace}}/build/imgui.ini
   build_macOS:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
@@ -105,6 +106,7 @@ jobs:
           path: |
             ${{github.workspace}}/build/Organic-Namer
             ${{github.workspace}}/build/res
+            ${{github.workspace}}/build/imgui.ini
   build_windows:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
@@ -150,3 +152,4 @@ jobs:
           path: |
             ${{github.workspace}}/build/Release/Organic-Namer.exe
             ${{github.workspace}}/build/Release/res
+            ${{github.workspace}}/build/Release/imgui.ini

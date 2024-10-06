@@ -25,3 +25,4 @@ target_link_libraries(${PROJECT_NAME} vendor)
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE src/Common.h)
 add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/res $<TARGET_FILE_DIR:${PROJECT_NAME}>/res)
+add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/imgui.ini $<TARGET_FILE_DIR:${PROJECT_NAME}>/imgui.ini)
