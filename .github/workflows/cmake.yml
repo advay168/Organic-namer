@@ -53,19 +53,12 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C $BUILD_TYPE
     - name: Upload binary
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
           name: Ubuntu binary
-          path: ${{github.workspace}}/build/Organic-Namer
-    - name: create res folder
-      shell: bash
-      working-directory: ${{github.workspace}}
-      run: mkdir ress && cp -r res ress
-    - name: Upload res
-      uses: actions/upload-artifact@v2
-      with:
-          name: Ubuntu binary
-          path: ${{github.workspace}}/ress
+          path: |
+            ${{github.workspace}}/build/Organic-Namer
+            ${{github.workspace}}/build/res
   build_macOS:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
@@ -106,19 +99,12 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C $BUILD_TYPE
     - name: Upload binary
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
           name: MacOS binary
-          path: ${{github.workspace}}/build/Organic-Namer
-    - name: create res folder
-      shell: bash
-      working-directory: ${{github.workspace}}
-      run: mkdir ress && cp -r res ress
-    - name: Upload res
-      uses: actions/upload-artifact@v2
-      with:
-          name: MacOS binary
-          path: ${{github.workspace}}/ress
+          path: |
+            ${{github.workspace}}/build/Organic-Namer
+            ${{github.workspace}}/build/res
   build_windows:
     # The CMake configure and build commands are platform agnostic and should work equally
     # well on Windows or Mac.  You can convert this to a matrix build if you need
@@ -158,16 +144,9 @@ jobs:
       # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: ctest -C $BUILD_TYPE
     - name: Upload binary
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
           name: Windows binary
-          path: ${{github.workspace}}/build/Release/Organic-Namer.exe
-    - name: create res folder
-      shell: bash
-      working-directory: ${{github.workspace}}
-      run: mkdir ress && cp -r res ress/res
-    - name: Upload res
-      uses: actions/upload-artifact@v2
-      with:
-          name: Windows binary
-          path: ${{github.workspace}}/ress
+          path: |
+            ${{github.workspace}}/build/Release/Organic-Namer.exe
+            ${{github.workspace}}/build/Release/res
